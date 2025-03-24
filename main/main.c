@@ -23,10 +23,29 @@ typedef struct {
     int8_t rssi;
 } AccesPoint;
 
+typedef double Features[2];
+
 // Represents an offset from the initial position (0, 0) (in meters)
 typedef struct {
     int16_t x, y;
 } Vec2;
+
+static void aps_to_features_vec(AccesPoint ap[], Features features, size_t count)
+{
+}
+
+static void print_ap(AccesPoint *ap)
+{
+    printf("RSSI: %d, %x:%x:%x:%x:%x:%x\n",
+           ap->rssi,
+           ap->mac_addr[0],
+           ap->mac_addr[1],
+           ap->mac_addr[2],
+           ap->mac_addr[3],
+           ap->mac_addr[4],
+           ap->mac_addr[5]
+    );
+}
 
 static void callback(void *arg)
 {
@@ -43,10 +62,7 @@ static void setup_timer(void)
 
     esp_timer_handle_t timer;
 
-    esp_err_t err = esp_timer_create(&args, &timer);
-    if (err)
-        printf("%s\n", esp_err_to_name(err));
-    ESP_ERROR_CHECK(err);
+    ESP_ERROR_CHECK(esp_timer_create(&args, &timer));
 
     esp_timer_start_periodic(timer, TIMEOUT);
 }
@@ -104,6 +120,7 @@ static void wifi_scan(AccesPoint aps[], uint16_t *ap_count)
         if (strcmp((char *)ap_info[i].ssid, SSID) == 0) {
             aps[*ap_count].rssi = ap_info[i].rssi,
             memcpy(&aps[*ap_count], ap_info[i].bssid, sizeof(ap_info[i].bssid));
+            print_ap(&aps[*ap_count]);
             (*ap_count)++;
         }
     }
