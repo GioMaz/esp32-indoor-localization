@@ -33,35 +33,45 @@ static void callback(void *arg)
     should_scan = true;
 }
 
-static void setup(void)
+static void setup_timer(void)
 {
-    esp_err_t err;
-
-    // Stop WatchDog Timer for the current task
-    esp_task_wdt_deinit();
-
-    // Setup timer
     const esp_timer_create_args_t args = {
         .callback = callback,
         .arg = NULL,
         .name = "Scan timer",
     };
+
     esp_timer_handle_t timer;
-    err = esp_timer_create(&args, &timer);
+
+    esp_err_t err = esp_timer_create(&args, &timer);
     if (err)
         printf("%s\n", esp_err_to_name(err));
     ESP_ERROR_CHECK(err);
-    esp_timer_start_periodic(timer, TIMEOUT);
 
-    // Initialize Non-Volatile Storage
-    err = nvs_flash_init();
+    esp_timer_start_periodic(timer, TIMEOUT);
+}
+
+static void setup_nvs(void)
+{
+    esp_err_t err = nvs_flash_init();
     if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
         ESP_ERROR_CHECK(nvs_flash_erase());
         err = nvs_flash_init();
     }
     ESP_ERROR_CHECK(err);
+}
 
-    // Setup needed for wifi
+static void setup(void)
+{
+    // Stop WatchDog Timer for the current task
+    esp_task_wdt_deinit();
+
+    // Setup timer
+    setup_timer();
+
+    // Initialize Non-Volatile Storage
+    setup_nvs();
+
     // Initialize TCP/IP stack
     ESP_ERROR_CHECK(esp_netif_init());
 
@@ -97,7 +107,7 @@ static void wifi_scan(AccesPoint aps[], uint16_t *ap_count)
             (*ap_count)++;
         }
     }
-    /*printf("GOT: %d %s\n", *ap_count, SSID);*/
+    printf("GOT: %d %s\n", *ap_count, SSID);
 }
 
 void app_main(void)
