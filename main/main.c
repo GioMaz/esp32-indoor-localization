@@ -29,22 +29,21 @@ typedef struct {
 
 typedef double Features[2];
 
-// Represents an offset from the initial position (0, 0) (in meters)
-typedef struct {
-    int16_t x, y;
-} Vec2;
-
 typedef struct {
     uint64_t min_mac, max_mac;
     int8_t min_rssi, max_rssi;
 } PreprocData;
 
-static void aps_to_features_vec(AccesPoint aps[], Features features_vec[], size_t count, PreprocData *preproc_data)
+typedef struct {
+    int16_t x, y;
+} Vec2;
+
+static void aps_to_features_vec(AccesPoint aps[], Features features_vec[], uint64_t count, PreprocData *preproc_data)
 {
-    uint64_t min_mac = 0;
-    uint64_t max_mac = (uint64_t) -1;
-    int8_t min_rssi = INT8_MIN;
-    int8_t max_rssi = INT8_MAX;
+    uint64_t min_mac = UINT64_MAX;
+    uint64_t max_mac = 0;
+    int8_t min_rssi = INT8_MAX;
+    int8_t max_rssi = INT8_MIN;
 
     for (uint32_t i = 0; i < count; i++) {
         uint64_t mac = *((uint64_t *)aps[i].mac_addr);
@@ -58,12 +57,27 @@ static void aps_to_features_vec(AccesPoint aps[], Features features_vec[], size_
 
     double diff_mac = (double) (max_mac - min_mac);
     double diff_rssi = (double) (max_rssi - min_rssi);
+
+    if (diff_mac == 0) diff_mac = 1;
+    if (diff_rssi == 0) diff_rssi = 1;
+
     for (uint32_t i = 0; i < count; i++) {
         uint64_t mac = *((uint64_t *)aps[i].mac_addr);
         int8_t rssi = aps[i].rssi;
         features_vec[i][0] = ((double) (mac - min_mac)) / diff_mac;
         features_vec[i][1] = ((double) (rssi - min_rssi)) / diff_rssi;
+        printf("FEATURE %lu: %lf %lf\n", i, features_vec[i][0], features_vec[i][1]);
     }
+
+    printf("min_mac: %llu\n", min_mac);
+    printf("max_mac: %llu\n", max_mac);
+    printf("min_rssi: %d\n", min_rssi);
+    printf("max_rssi: %d\n", max_rssi);
+
+    preproc_data->min_mac = min_mac;
+    preproc_data->max_mac = max_mac;
+    preproc_data->min_rssi = min_rssi;
+    preproc_data->max_rssi = max_rssi;
 }
 
 static void print_ap(AccesPoint *ap)
@@ -79,6 +93,7 @@ static void print_ap(AccesPoint *ap)
     );
 }
 
+// TODO: make this an interrupt handler for a button press
 static void callback(void *arg)
 {
     should_scan = true;
@@ -107,6 +122,16 @@ static void setup_nvs(void)
     ESP_ERROR_CHECK(err);
 }
 
+static void setup_wifi(void)
+{
+    esp_netif_t *sta_netif = esp_netif_create_default_wifi_sta();
+    assert(sta_netif);
+    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
+    ESP_ERROR_CHECK(esp_wifi_start());
+}
+
 static void setup(void)
 {
     // Stop WatchDog Timer for the current task
@@ -125,12 +150,7 @@ static void setup(void)
     ESP_ERROR_CHECK(esp_event_loop_create_default());
 
     // Initialize wifi station
-    esp_netif_t *sta_netif = esp_netif_create_default_wifi_sta();
-    assert(sta_netif);
-    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
-    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
-    ESP_ERROR_CHECK(esp_wifi_start());
+    setup_wifi();
 }
 
 static void wifi_scan(AccesPoint aps[], uint16_t *ap_count)
@@ -145,7 +165,7 @@ static void wifi_scan(AccesPoint aps[], uint16_t *ap_count)
     ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&number, ap_info));
 
     *ap_count = 0;
-    for (int i = 0; i < number; i++) {
+    for (int32_t i = 0; i < number; i++) {
         if (strcmp((char *)ap_info[i].ssid, SSID) == 0) {
             aps[*ap_count].rssi = ap_info[i].rssi,
             memcpy(&aps[*ap_count], ap_info[i].bssid, sizeof(ap_info[i].bssid));
@@ -153,12 +173,20 @@ static void wifi_scan(AccesPoint aps[], uint16_t *ap_count)
             (*ap_count)++;
         }
     }
+
     printf("GOT: %d %s\n", *ap_count, SSID);
+
+    Features features_vec[MAX_AP_LIST_SIZE];
+    PreprocData preproc_data;
+    aps_to_features_vec(aps, features_vec, (uint64_t) *ap_count, &preproc_data);
 }
 
 void app_main(void)
 {
     setup();
+
+    // Set initial position
+    Vec2 pos = { 0, 0 };
 
     // Loop
     while (1) {
