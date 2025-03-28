@@ -35,7 +35,7 @@ static bool should_scan = true;
 
 typedef struct {
     /*int8_t channel;*/
-    char mac_addr[6];
+    uint8_t mac[6];
     int8_t rssi;
 } AccessPoint;
 
@@ -58,6 +58,21 @@ typedef struct {
     int8_t min_rssi, max_rssi;
 } PreprocData;
 
+static uint64_t mac_to_feature(const uint8_t mac[6])
+{
+    uint8_t feature[8] = {0};
+
+    // ESP32 uses little endian
+    feature[7] = mac[0];
+    feature[6] = mac[1];
+    feature[5] = mac[2];
+    feature[4] = mac[3];
+    feature[3] = mac[4];
+    feature[2] = mac[5];
+
+    return (uint64_t)feature;
+}
+
 static double euclidean_dist(const Features *f_1, const Features *f_2)
 {
     double x = f_2->x - f_1->x;
@@ -76,7 +91,7 @@ static int cmp(const void *fl_1, const void *fl_2, void *query)
 
 static void ap_to_features(const PreprocData *pd, const AccessPoint *ap, Features *features)
 {
-    uint64_t mac = *((uint64_t *)ap->mac_addr);
+    uint64_t mac = mac_to_feature(ap->mac);
     int8_t rssi = ap->rssi;
 
     double diff_mac = (double)(pd->max_mac - pd->min_mac);
@@ -112,7 +127,7 @@ static void aps_to_features_set(const AccessPoint aps[], Features features_set[]
     int8_t max_rssi = INT8_MIN;
 
     for (uint32_t i = 0; i < count; i++) {
-        uint64_t mac = *((uint64_t *)aps[i].mac_addr);
+        uint64_t mac = mac_to_feature(aps[i].mac);
         min_mac = MIN(min_mac, mac);
         max_mac = MAX(max_mac, mac);
 
@@ -141,12 +156,12 @@ static void print_ap(AccessPoint *ap)
 {
     printf("RSSI: %d, %x:%x:%x:%x:%x:%x\n",
            ap->rssi,
-           ap->mac_addr[0],
-           ap->mac_addr[1],
-           ap->mac_addr[2],
-           ap->mac_addr[3],
-           ap->mac_addr[4],
-           ap->mac_addr[5]
+           ap->mac[0],
+           ap->mac[1],
+           ap->mac[2],
+           ap->mac[3],
+           ap->mac[4],
+           ap->mac[5]
     );
 }
 
@@ -268,18 +283,21 @@ static void wifi_scan(AccessPoint aps[], uint32_t *ap_count)
     memset(ap_info, 0, sizeof(ap_info));
 
     // Scan for acces points
-    esp_wifi_scan_start(NULL, true);
+    esp_err_t err = esp_wifi_scan_start(NULL, true);
+    printf("%s\n", esp_err_to_name(err));
     ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&number, ap_info));
 
     *ap_count = 0;
     for (int32_t i = 0; i < number; i++) {
         if (strcmp((char *)ap_info[i].ssid, SSID) == 0) {
             aps[*ap_count].rssi = ap_info[i].rssi,
-            memcpy(&aps[*ap_count], ap_info[i].bssid, sizeof(ap_info[i].bssid));
+            memcpy(&aps[*ap_count].mac, ap_info[i].bssid, sizeof(ap_info[i].bssid));
             print_ap(&aps[*ap_count]);
             (*ap_count)++;
         }
     }
+
+    esp_wifi_scan_stop();
 
     /**/
     /*printf("GOT: %ld %s\n", *ap_count, SSID);*/
