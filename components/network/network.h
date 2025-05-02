@@ -2,15 +2,15 @@
 
 #include <stdint.h>
 
-static const uint32_t MAX_AP_LIST_SIZE = 20;
+#define MAX_APS 16
 
 typedef struct {
-  /*int8_t channel;*/
+  uint8_t ssid[33];
   uint8_t mac[6];
   int8_t rssi;
+  /*int8_t channel;*/
 } AccessPoint;
 
-/*typedef double Features[2];*/
 typedef struct {
   double x, y;
 } Features;
@@ -25,4 +25,4 @@ typedef struct {
 } FeaturesLabel;
 
 void setup_wifi(void);
-void wifi_scan(AccessPoint aps[], uint32_t *ap_count);
+uint16_t wifi_scan(AccessPoint aps[]);

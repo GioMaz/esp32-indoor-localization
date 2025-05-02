@@ -5,6 +5,8 @@
 
 #include "esp_event.h"
 #include "esp_log.h"
+#include "esp_err.h"
+#include "esp_wifi.h"
 #include "esp_netif.h"
 #include "esp_task_wdt.h"
 #include "freertos/FreeRTOS.h"
@@ -13,7 +15,7 @@
 
 #include "network.h"
 
-#define CONSOLE 1
+#define CONSOLE
 
 #ifdef CONSOLE
 #include "driver/uart.h"
@@ -22,22 +24,18 @@
 #include "linenoise/linenoise.h"
 #endif
 
-/*static const uint32_t TIMEOUT = 1e6;*/
-static const uint32_t MAX_DATAPOINTS = 1024;
+static const uint32_t MAX_DATAPOINTS = 100;
 static const uint32_t CMD_SIZE = 16;
-/*static const char *SSID = "unitn-x";*/
-
-static bool should_scan = true;
+static const char *SSID = "unitn-x";
 
 static void setup_nvs(void)
 {
-    esp_err_t err = nvs_flash_init();
-    if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND)
-    {
+    esp_err_t ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
         ESP_ERROR_CHECK(nvs_flash_erase());
-        err = nvs_flash_init();
+        ret = nvs_flash_init();
     }
-    ESP_ERROR_CHECK(err);
+    ESP_ERROR_CHECK(ret);
 }
 
 static void setup_console(void)
@@ -48,13 +46,6 @@ static void setup_console(void)
 
     /* Disable buffering on stdin */
     setvbuf(stdin, NULL, _IONBF, 0);
-
-    /* Minicom, screen, idf_monitor send CR when ENTER key is pressed */
-    /*esp_vfs_dev_uart_port_set_rx_line_endings(CONFIG_ESP_CONSOLE_UART_NUM,
-     * ESP_LINE_ENDINGS_CR);*/
-    /* Move the caret to the beginning of the next line on '\n' */
-    /*esp_vfs_dev_uart_port_set_tx_line_endings(CONFIG_ESP_CONSOLE_UART_NUM,
-     * ESP_LINE_ENDINGS_CRLF);*/
 
     /* Configure UART. Note that REF_TICK is used so that the baud rate remains
      * correct while APB frequency is changing in light sleep mode.
@@ -79,12 +70,14 @@ static void setup_console(void)
     esp_vfs_dev_uart_use_driver(CONFIG_ESP_CONSOLE_UART_NUM);
 
     /* Initialize the console */
-    esp_console_config_t console_config = {.max_cmdline_args = 8,
-                                           .max_cmdline_length = 256,
+    esp_console_config_t console_config = {
+        .max_cmdline_args = 8,
+        .max_cmdline_length = 256,
 #if CONFIG_LOG_COLORS
-                                           .hint_color = atoi(LOG_COLOR_CYAN)
+        .hint_color = atoi(LOG_COLOR_CYAN)
 #endif
     };
+
     ESP_ERROR_CHECK(esp_console_init(&console_config));
 
     /* Configure linenoise line completion library */
@@ -120,12 +113,6 @@ static void setup(void)
     // Initialize Non-Volatile Storage
     setup_nvs();
 
-    // Initialize TCP/IP stack
-    ESP_ERROR_CHECK(esp_netif_init());
-
-    // Initialize event loop
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
-
     // Initialize wifi station
     setup_wifi();
 }
@@ -136,61 +123,48 @@ void app_main(void)
 
     AccessPoint total_aps[MAX_DATAPOINTS];
     Label total_labels[MAX_DATAPOINTS];
-
-    FeaturesLabel fls[MAX_DATAPOINTS];
+    /*FeaturesLabel fls[MAX_DATAPOINTS];*/
 
     uint32_t count = 0;
 
 #ifdef CONSOLE
 
     // Loop
-    while (1)
-    {
+    while (1) {
         char *line = linenoise("> ");
 
         char cmd[CMD_SIZE];
         sscanf(line, "%s ", cmd);
 
-        if (strcmp(cmd, "reg") == 0)
-        {
+        if (strcmp(cmd, "reg") == 0) {
             int32_t x, y;
             sscanf(line, "%*s %ld %ld\n", &x, &y);
-            linenoiseFree(line);
 
             printf("TRYING %ld %ld...\n", x, y);
 
-            AccessPoint aps[MAX_AP_LIST_SIZE];
-            uint32_t ap_count;
-            wifi_scan(aps, &ap_count);
+            AccessPoint aps[MAX_APS];
+            uint16_t ap_count = wifi_scan(aps);
+            printf("DONE %d\n", ap_count);
 
-            for (uint32_t i = 0; i < ap_count; i++)
-            {
-                if (count == MAX_DATAPOINTS)
-                {
-                    exit(1);
+            for (uint16_t i = 0; i < ap_count; i++) {
+                if (count == MAX_DATAPOINTS) {
+                    printf("ERROR: Max number of datapoints reached\n");
+                    while (1);
                 }
-                total_aps[count] = aps[i];
-                total_labels[count] = (Label){.x = x, .y = y};
+
+                memcpy(&total_aps[count], &aps[i], sizeof(total_aps[count]));
+                total_labels[count] = (Label) { x, y };
                 count++;
             }
-        }
-        else if (strcmp(cmd, "listen") == 0)
-        {
-            printf("LISTENING...\n");
-            while (1)
-                ;
-        }
-        else if (strcmp(cmd, "quit") == 0)
-        {
-            exit(0);
+        } else if (strcmp(cmd, "listen") == 0) {
+            printf("Listening...\n");
+            while (1);
+        } else if (strcmp(cmd, "quit") == 0) {
+            printf("Completed...\n");
+            while (1);
         }
 
-        /*if (should_scan) {*/
-        /*    AccessPoint aps[MAX_AP_LIST_SIZE];*/
-        /*    uint16_t ap_count;*/
-        /*    wifi_scan(aps, &ap_count);*/
-        /*    should_scan = false;*/
-        /*}*/
+        linenoiseFree(line);
     }
 
 #endif
