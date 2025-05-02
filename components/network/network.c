@@ -42,8 +42,11 @@ uint16_t wifi_scan(AccessPoint aps[])
     for (int i = 0; i < number; i++) {
         /*printf("SIZE ssid: %d %d\n", sizeof(aps[i].ssid), sizeof(ap_info[i].ssid));*/
         /*printf("SIZE mac: %d %d\n", sizeof(aps[i].mac), sizeof(ap_info[i].bssid));*/
+
         memcpy(&aps[i].ssid, &ap_info[i].ssid, sizeof(aps[i].ssid));
         memcpy(&aps[i].mac, &ap_info[i].bssid, sizeof(aps[i].mac));
+        aps[i].rssi = ap_info[i].rssi;
+
         printf("SSID \t\t%s\n", ap_info[i].ssid);
         printf("RSSI \t\t%d\n", ap_info[i].rssi);
         printf("Channel \t\t%d\n", ap_info[i].primary);
