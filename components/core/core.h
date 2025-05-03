@@ -1,6 +1,7 @@
 #pragma once
 
 #include "network.h"
+#include "common.h"
 #include <stdint.h>
 
 typedef struct {
@@ -11,10 +12,6 @@ typedef struct {
 typedef struct {
     double x, y;
 } Features;
-
-typedef struct {
-    int16_t x, y;
-} Label;
 
 typedef struct {
     Features features;
