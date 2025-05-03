@@ -11,18 +11,5 @@ typedef struct {
     /*int8_t channel;*/
 } AccessPoint;
 
-typedef struct {
-    double x, y;
-} Features;
-
-typedef struct {
-    int16_t x, y;
-} Label;
-
-typedef struct {
-    Features features;
-    Label label;
-} FeaturesLabel;
-
 void setup_wifi(void);
 uint16_t wifi_scan(AccessPoint aps[]);

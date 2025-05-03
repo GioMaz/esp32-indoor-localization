@@ -14,6 +14,7 @@
 #include "nvs_flash.h"
 
 #include "network.h"
+#include "core.h"
 
 #define CONSOLE
 

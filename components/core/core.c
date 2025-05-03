@@ -1,16 +1,9 @@
 #include "core.h"
+#include "common.h"
 
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#define MIN(a, b) a < b ? a : b
-#define MAX(a, b) a > b ? a : b
-
-typedef struct {
-    uint64_t min_mac, max_mac;
-    int8_t min_rssi, max_rssi;
-} PreprocData;
 
 static uint64_t mac_to_feature(const uint8_t mac[6])
 {

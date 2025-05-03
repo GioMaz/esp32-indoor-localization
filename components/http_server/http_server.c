@@ -1,6 +1,5 @@
 #include "http_server.h"
-
-#define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
+#include "common.h"
 
 /* Handler function to be called during GET /api/position request */
 esp_err_t get_position_handler(httpd_req_t *req)
