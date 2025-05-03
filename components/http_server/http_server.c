@@ -32,8 +32,7 @@ httpd_handle_t http_server_start(void)
     httpd_handle_t server = NULL;
 
     /* Start the httpd server */
-    if (httpd_start(&server, &config) == ESP_OK)
-    {
+    if (httpd_start(&server, &config) == ESP_OK) {
         /* Register URI handlers */
         httpd_register_uri_handler(server, &uri_get);
     }
@@ -43,8 +42,7 @@ httpd_handle_t http_server_start(void)
 
 void http_server_stop(httpd_handle_t server)
 {
-    if (server)
-    {
+    if (server) {
         /* Stop the httpd server */
         httpd_stop(server);
     }
