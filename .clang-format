@@ -1,7 +1,7 @@
 BasedOnStyle: LLVM
 IndentWidth: 4
 UseTab: Never
-BreakBeforeBraces: BS_Mozilla
+BreakBeforeBraces: WebKit
 AllowShortFunctionsOnASingleLine: Empty
 ColumnLimit: 100
 SortIncludes: true

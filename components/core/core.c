@@ -7,8 +7,7 @@
 #define MIN(a, b) a < b ? a : b
 #define MAX(a, b) a > b ? a : b
 
-typedef struct
-{
+typedef struct {
     uint64_t min_mac, max_mac;
     int8_t min_rssi, max_rssi;
 } PreprocData;
@@ -67,8 +66,7 @@ static Label knn(FeaturesLabel fl_set[], uint32_t count, uint32_t k, Features *q
     uint64_t n = MIN(k, count);
     double x_mean = 0;
     double y_mean = 0;
-    for (uint32_t i = 0; i < n; i++)
-    {
+    for (uint32_t i = 0; i < n; i++) {
         x_mean += (double)fl_set[i].label.x;
         y_mean += (double)fl_set[i].label.y;
     }
@@ -85,8 +83,7 @@ static void aps_to_features_set(const AccessPoint aps[], Features features_set[]
     int8_t min_rssi = INT8_MAX;
     int8_t max_rssi = INT8_MIN;
 
-    for (uint32_t i = 0; i < count; i++)
-    {
+    for (uint32_t i = 0; i < count; i++) {
         uint64_t mac = mac_to_feature(aps[i].mac);
         min_mac = MIN(min_mac, mac);
         max_mac = MAX(max_mac, mac);
@@ -106,8 +103,7 @@ static void aps_to_features_set(const AccessPoint aps[], Features features_set[]
     printf("min_rssi: %d\n", min_rssi);
     printf("max_rssi: %d\n", max_rssi);
 
-    for (uint32_t i = 0; i < count; i++)
-    {
+    for (uint32_t i = 0; i < count; i++) {
         ap_to_features(preproc_data, &aps[i], &features_set[i]);
         printf("FEATURES %lu: %lf %lf\n", i, features_set[i].x, features_set[i].y);
     }

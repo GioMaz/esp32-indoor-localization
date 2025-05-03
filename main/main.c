@@ -3,12 +3,12 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "esp_err.h"
 #include "esp_event.h"
 #include "esp_log.h"
-#include "esp_err.h"
-#include "esp_wifi.h"
 #include "esp_netif.h"
 #include "esp_task_wdt.h"
+#include "esp_wifi.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
 #include "nvs_flash.h"
@@ -70,11 +70,10 @@ static void setup_console(void)
     esp_vfs_dev_uart_use_driver(CONFIG_ESP_CONSOLE_UART_NUM);
 
     /* Initialize the console */
-    esp_console_config_t console_config = {
-        .max_cmdline_args = 8,
-        .max_cmdline_length = 256,
+    esp_console_config_t console_config = {.max_cmdline_args = 8,
+                                           .max_cmdline_length = 256,
 #if CONFIG_LOG_COLORS
-        .hint_color = atoi(LOG_COLOR_CYAN)
+                                           .hint_color = atoi(LOG_COLOR_CYAN)
 #endif
     };
 
@@ -149,19 +148,22 @@ void app_main(void)
             for (uint16_t i = 0; i < ap_count; i++) {
                 if (count == MAX_DATAPOINTS) {
                     printf("ERROR: Max number of datapoints reached\n");
-                    while (1);
+                    while (1)
+                        ;
                 }
 
                 memcpy(&total_aps[count], &aps[i], sizeof(total_aps[count]));
-                total_labels[count] = (Label) { x, y };
+                total_labels[count] = (Label){x, y};
                 count++;
             }
         } else if (strcmp(cmd, "listen") == 0) {
             printf("Listening...\n");
-            while (1);
+            while (1)
+                ;
         } else if (strcmp(cmd, "quit") == 0) {
             printf("Completed...\n");
-            while (1);
+            while (1)
+                ;
         }
 
         linenoiseFree(line);
