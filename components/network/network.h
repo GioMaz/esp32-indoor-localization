@@ -13,3 +13,5 @@ typedef struct {
 
 void setup_wifi(void);
 uint16_t wifi_scan(AccessPoint aps[]);
+void ap_start(void);
+void ap_stop(void);

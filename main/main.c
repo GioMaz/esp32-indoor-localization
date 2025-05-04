@@ -122,6 +122,7 @@ static void setup(void)
 void app_main(void)
 {
     setup();
+    ap_start();
 
     AccessPoint total_aps[MAX_DATAPOINTS];
     Label total_labels[MAX_DATAPOINTS];
@@ -178,4 +179,5 @@ void app_main(void)
 #endif
 
     http_server_stop(server);
+    ap_stop();
 }
