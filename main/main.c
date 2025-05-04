@@ -11,10 +11,12 @@
 #include "esp_wifi.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
+#include "freertos/idf_additions.h"
 #include "nvs_flash.h"
 
-#include "network.h"
 #include "core.h"
+#include "http_server.h"
+#include "network.h"
 
 #define CONSOLE
 
@@ -127,6 +129,9 @@ void app_main(void)
 
     uint32_t count = 0;
 
+    QueueHandle_t queue = xQueueCreate(10, sizeof(unsigned long));
+    HttpServer *server = http_server_start(queue);
+
 #ifdef CONSOLE
 
     // Loop
@@ -171,4 +176,6 @@ void app_main(void)
     }
 
 #endif
+
+    http_server_stop(server);
 }
