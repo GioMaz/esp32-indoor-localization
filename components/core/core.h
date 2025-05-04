@@ -1,6 +1,7 @@
 #pragma once
 
 #include "network.h"
+#include "common.h"
 #include <stdint.h>
 
 typedef struct {

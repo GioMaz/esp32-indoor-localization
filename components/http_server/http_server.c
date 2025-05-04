@@ -1,48 +1,115 @@
 #include "http_server.h"
-#include "common.h"
+#include "esp_log.h"
+#include "freertos/idf_additions.h"
 
-/* Handler function to be called during GET /api/position request */
+static const char * TAG = "http_server";
+
+void server_update_task(void *param)
+{
+    update_task_args_t *args = (update_task_args_t *)param;
+    server_context_t *ctx = args->ctx;
+    QueueHandle_t queue = args->queue;
+
+    Label new_position;
+
+    while (1) {
+        if (xQueueReceive(queue, &new_position, portMAX_DELAY)) {
+            ctx->position = new_position;
+        }
+    }
+}
+
 esp_err_t get_position_handler(httpd_req_t *req)
 {
-    //--- get data from ipc
-    float x = 12.34;
-    float y = 56.78;
-    //---
+    server_context_t *ctx = (server_context_t *)req->user_ctx;
+    if (!ctx) {
+        return ESP_FAIL;
+    }
+
+    float x = ctx->position.x;
+    float y = ctx->position.y;
 
     char json_response[64];
     snprintf(json_response, sizeof(json_response), "{\"x\": %.2f, \"y\": %.2f}", x, y);
 
     httpd_resp_set_type(req, "application/json");
-
     httpd_resp_send(req, json_response, HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
 }
 
-/* URI handler structure for GET /api/position */
-httpd_uri_t uri_get = {
-    .uri = "/api/position", .method = HTTP_GET, .handler = get_position_handler, .user_ctx = NULL};
-
-httpd_handle_t http_server_start(void)
+HttpServer *http_server_start(QueueHandle_t queue)
 {
-    /* Generate default configuration */
-    httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-
-    /* Empty handle to esp_http_server */
-    httpd_handle_t server = NULL;
-
-    /* Start the httpd server */
-    if (httpd_start(&server, &config) == ESP_OK) {
-        /* Register URI handlers */
-        httpd_register_uri_handler(server, &uri_get);
+    HttpServer *http = calloc(1, sizeof(HttpServer));
+    if (!http) {
+        ESP_LOGE(TAG, "Failed to allocate HttpServer struct");
+        return NULL;
     }
-    /* If server failed to start, handle will be NULL */
-    return server;
+
+    http->ctx = calloc(1, sizeof(server_context_t));
+    if (!http->ctx) {
+        ESP_LOGE(TAG, "Failed to allocate context");
+        free(http);
+        return NULL;
+    }
+    http->ctx->position = (Label){.x = 0, .y = 0};
+
+    http->task_args = calloc(1, sizeof(update_task_args_t));
+    if (!http->task_args) {
+        ESP_LOGE(TAG, "Failed to allocate task args");
+        free(http->ctx);
+        free(http);
+        return NULL;
+    }
+
+    http->task_args->ctx = http->ctx;
+    http->task_args->queue = queue;
+
+    if (xTaskCreate(server_update_task, "server_update", 2048, http->task_args, 5, &http->task_handle) != pdPASS) {
+        ESP_LOGE(TAG, "Failed to create task");
+        free(http->task_args);
+        free(http->ctx);
+        free(http);
+        return NULL;
+    }
+
+    httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+    if (httpd_start(&http->server, &config) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to start server");
+        vTaskDelete(http->task_handle);
+        free(http->task_args);
+        free(http->ctx);
+        free(http);
+        return NULL;
+    }
+
+    ESP_LOGI(TAG, "Http Server started on port: [%d]", config.server_port);
+
+    httpd_uri_t get_position = {
+        .uri = "/api/position",
+        .method = HTTP_GET,
+        .handler = get_position_handler,
+        .user_ctx = http->ctx};
+
+    httpd_register_uri_handler(http->server, &get_position);
+
+    return http;
 }
 
-void http_server_stop(httpd_handle_t server)
+void http_server_stop(HttpServer *http)
 {
-    if (server) {
-        /* Stop the httpd server */
-        httpd_stop(server);
+    if (!http) return;
+
+    if (http->server) {
+        httpd_stop(http->server);
     }
+
+    if (http->task_handle) {
+        vTaskDelete(http->task_handle);
+    }
+
+    free(http->task_args);
+    free(http->ctx);
+    free(http);
+
+    ESP_LOGI(TAG, "Http Server stopped");
 }

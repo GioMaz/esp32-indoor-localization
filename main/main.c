@@ -11,10 +11,12 @@
 #include "esp_wifi.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
+#include "freertos/idf_additions.h"
 #include "nvs_flash.h"
 
-#include "network.h"
 #include "core.h"
+#include "http_server.h"
+#include "network.h"
 
 #define CONSOLE
 
@@ -120,12 +122,16 @@ static void setup(void)
 void app_main(void)
 {
     setup();
+    ap_start();
 
     AccessPoint total_aps[MAX_DATAPOINTS];
     Pos total_labels[MAX_DATAPOINTS];
     /*FeaturesLabel fls[MAX_DATAPOINTS];*/
 
     uint32_t count = 0;
+
+    QueueHandle_t queue = xQueueCreate(10, sizeof(unsigned long));
+    HttpServer *server = http_server_start(queue);
 
 #ifdef CONSOLE
 
@@ -171,4 +177,7 @@ void app_main(void)
     }
 
 #endif
+
+    http_server_stop(server);
+    ap_stop();
 }
