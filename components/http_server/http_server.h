@@ -5,7 +5,7 @@
 #include "freertos/idf_additions.h"
 
 typedef struct {
-    Label position;
+    Pos position;
 } server_context_t;
 
 typedef struct {

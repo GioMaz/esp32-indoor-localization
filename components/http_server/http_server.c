@@ -10,7 +10,7 @@ void server_update_task(void *param)
     server_context_t *ctx = args->ctx;
     QueueHandle_t queue = args->queue;
 
-    Label new_position;
+    Pos new_position;
 
     while (1) {
         if (xQueueReceive(queue, &new_position, portMAX_DELAY)) {
@@ -51,7 +51,7 @@ HttpServer *http_server_start(QueueHandle_t queue)
         free(http);
         return NULL;
     }
-    http->ctx->position = (Label){.x = 0, .y = 0};
+    http->ctx->position = (Pos){.x = 0, .y = 0};
 
     http->task_args = calloc(1, sizeof(update_task_args_t));
     if (!http->task_args) {

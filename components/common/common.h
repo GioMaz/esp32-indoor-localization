@@ -7,4 +7,4 @@
 
 typedef struct {
     int16_t x, y;
-} Label;
+} Pos;
