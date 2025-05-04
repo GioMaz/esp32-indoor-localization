@@ -53,21 +53,6 @@ static void ap_to_features(const PreprocData *pd, const AccessPoint *ap, Feature
     features->y = ((double)(rssi - pd->min_rssi)) / diff_rssi;
 }
 
-static Label knn(FeaturesLabel fl_set[], uint32_t count, uint32_t k, Features *query)
-{
-    qsort_r(fl_set, count, sizeof(FeaturesLabel), cmp, query);
-    uint64_t n = MIN(k, count);
-    double x_mean = 0;
-    double y_mean = 0;
-    for (uint32_t i = 0; i < n; i++) {
-        x_mean += (double)fl_set[i].label.x;
-        y_mean += (double)fl_set[i].label.y;
-    }
-    x_mean /= (double)n;
-    y_mean /= (double)n;
-    return (Label){.x = x_mean, .y = y_mean};
-}
-
 static void aps_to_features_set(const AccessPoint aps[], Features features_set[], uint64_t count,
                                 PreprocData *preproc_data)
 {
@@ -100,4 +85,19 @@ static void aps_to_features_set(const AccessPoint aps[], Features features_set[]
         ap_to_features(preproc_data, &aps[i], &features_set[i]);
         printf("FEATURES %lu: %lf %lf\n", i, features_set[i].x, features_set[i].y);
     }
+}
+
+static Pos knn(FeaturesLabel fl_set[], uint32_t count, uint32_t k, Features *query)
+{
+    qsort_r(fl_set, count, sizeof(FeaturesLabel), cmp, query);
+    uint64_t n = MIN(k, count);
+    double x_mean = 0;
+    double y_mean = 0;
+    for (uint32_t i = 0; i < n; i++) {
+        x_mean += (double)fl_set[i].label.x;
+        y_mean += (double)fl_set[i].label.y;
+    }
+    x_mean /= (double)n;
+    y_mean /= (double)n;
+    return (Pos){.x = x_mean, .y = y_mean};
 }

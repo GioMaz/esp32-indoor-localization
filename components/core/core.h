@@ -14,9 +14,9 @@ typedef struct {
 
 typedef struct {
     int16_t x, y;
-} Label;
+} Pos;
 
 typedef struct {
     Features features;
-    Label label;
+    Pos label;
 } FeaturesLabel;

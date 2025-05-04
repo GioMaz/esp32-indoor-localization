@@ -122,7 +122,7 @@ void app_main(void)
     setup();
 
     AccessPoint total_aps[MAX_DATAPOINTS];
-    Label total_labels[MAX_DATAPOINTS];
+    Pos total_labels[MAX_DATAPOINTS];
     /*FeaturesLabel fls[MAX_DATAPOINTS];*/
 
     uint32_t count = 0;
@@ -154,7 +154,7 @@ void app_main(void)
                 }
 
                 memcpy(&total_aps[count], &aps[i], sizeof(total_aps[count]));
-                total_labels[count] = (Label){x, y};
+                total_labels[count] = (Pos){x, y};
                 count++;
             }
         } else if (strcmp(cmd, "listen") == 0) {
