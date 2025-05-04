@@ -2,7 +2,7 @@
 #include "esp_log.h"
 #include "freertos/idf_additions.h"
 
-#define TAG "HTTP SERVER"
+static const char * TAG = "http_server";
 
 void server_update_task(void *param)
 {
@@ -82,6 +82,8 @@ HttpServer *http_server_start(QueueHandle_t queue)
         return NULL;
     }
 
+    ESP_LOGI(TAG, "Http Server started on port: [%d]", config.server_port);
+
     httpd_uri_t get_position = {
         .uri = "/api/position",
         .method = HTTP_GET,
@@ -108,4 +110,6 @@ void http_server_stop(HttpServer *http)
     free(http->task_args);
     free(http->ctx);
     free(http);
+
+    ESP_LOGI(TAG, "Http Server stopped");
 }
