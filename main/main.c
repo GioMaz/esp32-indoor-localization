@@ -13,6 +13,7 @@
 #include "core.h"
 #include "http_server.h"
 #include "network.h"
+#include "storage.h"
 
 #define CONSOLE
 
@@ -113,6 +114,9 @@ static void setup(void)
 
     // Initialize wifi station
     setup_wifi();
+
+    // Initialize little fs
+    setup_storage();
 }
 
 void app_main(void)
