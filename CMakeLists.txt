@@ -6,3 +6,5 @@ cmake_minimum_required(VERSION 3.16)
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(esp32-rssi-location-estimator)
+
+littlefs_create_partition_image(storage ./storage_image FLASH_IN_PROJECT)
