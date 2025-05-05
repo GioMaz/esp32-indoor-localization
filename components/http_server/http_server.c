@@ -2,7 +2,7 @@
 #include "esp_log.h"
 #include "freertos/idf_additions.h"
 
-static const char * TAG = "http_server";
+static const char *TAG = "http_server";
 
 void server_update_task(void *param)
 {
@@ -37,79 +37,80 @@ esp_err_t get_position_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
-HttpServer *http_server_start(QueueHandle_t queue)
+ServerWrapper *http_server_start(QueueHandle_t queue)
 {
-    HttpServer *http = calloc(1, sizeof(HttpServer));
-    if (!http) {
+    ServerWrapper *server_wrapper = calloc(1, sizeof(ServerWrapper));
+    if (!server_wrapper) {
         ESP_LOGE(TAG, "Failed to allocate HttpServer struct");
         return NULL;
     }
 
-    http->ctx = calloc(1, sizeof(server_context_t));
-    if (!http->ctx) {
+    server_wrapper->ctx = calloc(1, sizeof(server_context_t));
+    if (!server_wrapper->ctx) {
         ESP_LOGE(TAG, "Failed to allocate context");
-        free(http);
+        free(server_wrapper);
         return NULL;
     }
-    http->ctx->position = (Pos){.x = 0, .y = 0};
+    server_wrapper->ctx->position = (Pos){.x = 0, .y = 0};
 
-    http->task_args = calloc(1, sizeof(update_task_args_t));
-    if (!http->task_args) {
+    server_wrapper->task_args = calloc(1, sizeof(update_task_args_t));
+    if (!server_wrapper->task_args) {
         ESP_LOGE(TAG, "Failed to allocate task args");
-        free(http->ctx);
-        free(http);
+        free(server_wrapper->ctx);
+        free(server_wrapper);
         return NULL;
     }
 
-    http->task_args->ctx = http->ctx;
-    http->task_args->queue = queue;
+    server_wrapper->task_args->ctx = server_wrapper->ctx;
+    server_wrapper->task_args->queue = queue;
 
-    if (xTaskCreate(server_update_task, "server_update", 2048, http->task_args, 5, &http->task_handle) != pdPASS) {
+    if (xTaskCreate(server_update_task, "server_update", 2048, server_wrapper->task_args, 5,
+                    &server_wrapper->task_handle) != pdPASS) {
         ESP_LOGE(TAG, "Failed to create task");
-        free(http->task_args);
-        free(http->ctx);
-        free(http);
+        free(server_wrapper->task_args);
+        free(server_wrapper->ctx);
+        free(server_wrapper);
         return NULL;
     }
 
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    if (httpd_start(&http->server, &config) != ESP_OK) {
+    if (httpd_start(&server_wrapper->server, &config) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to start server");
-        vTaskDelete(http->task_handle);
-        free(http->task_args);
-        free(http->ctx);
-        free(http);
+        vTaskDelete(server_wrapper->task_handle);
+        free(server_wrapper->task_args);
+        free(server_wrapper->ctx);
+        free(server_wrapper);
         return NULL;
     }
 
     ESP_LOGI(TAG, "Http Server started on port: [%d]", config.server_port);
 
-    httpd_uri_t get_position = {
-        .uri = "/api/position",
-        .method = HTTP_GET,
-        .handler = get_position_handler,
-        .user_ctx = http->ctx};
+    httpd_uri_t get_position = {.uri = "/api/position",
+                                .method = HTTP_GET,
+                                .handler = get_position_handler,
+                                .user_ctx = server_wrapper->ctx};
 
-    httpd_register_uri_handler(http->server, &get_position);
+    httpd_register_uri_handler(server_wrapper->server, &get_position);
 
-    return http;
+    return server_wrapper;
 }
 
-void http_server_stop(HttpServer *http)
+void http_server_stop(ServerWrapper *server_wrapper)
 {
-    if (!http) return;
+    if (!server_wrapper)
+        return;
 
-    if (http->server) {
-        httpd_stop(http->server);
+    if (server_wrapper->server) {
+        httpd_stop(server_wrapper->server);
     }
 
-    if (http->task_handle) {
-        vTaskDelete(http->task_handle);
+    if (server_wrapper->task_handle) {
+        vTaskDelete(server_wrapper->task_handle);
     }
 
-    free(http->task_args);
-    free(http->ctx);
-    free(http);
+    free(server_wrapper->task_args);
+    free(server_wrapper->ctx);
+    free(server_wrapper);
 
     ESP_LOGI(TAG, "Http Server stopped");
 }

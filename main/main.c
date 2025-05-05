@@ -4,11 +4,7 @@
 #include <unistd.h>
 
 #include "esp_err.h"
-#include "esp_event.h"
-#include "esp_log.h"
-#include "esp_netif.h"
 #include "esp_task_wdt.h"
-#include "esp_wifi.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
 #include "freertos/idf_additions.h"
@@ -131,7 +127,7 @@ void app_main(void)
     uint32_t count = 0;
 
     QueueHandle_t queue = xQueueCreate(10, sizeof(unsigned long));
-    HttpServer *server = http_server_start(queue);
+    ServerWrapper *server = http_server_start(queue);
 
 #ifdef CONSOLE
 
