@@ -4,16 +4,16 @@
 
 static const char *TAG = "storage";
 
+static const esp_vfs_littlefs_conf_t conf = {
+    .base_path = "/littlefs",
+    .partition_label = "storage",
+    .format_if_mount_failed = true,
+    .dont_mount = false,
+};
+
 void setup_storage()
 {
     ESP_LOGI(TAG, "Initializing LittleFS...");
-
-    esp_vfs_littlefs_conf_t conf = {
-        .base_path = "/littlefs",
-        .partition_label = "storage",
-        .format_if_mount_failed = true,
-        .dont_mount = false,
-    };
 
     esp_err_t ret = esp_vfs_littlefs_register(&conf);
 
@@ -29,4 +29,11 @@ void setup_storage()
     }
 
     ESP_LOGI(TAG, "LittleFS Initialized");
+}
+
+void unmount_storage()
+{
+    ESP_LOGI(TAG, "Unmounting LittleFS...");
+    esp_vfs_littlefs_unregister(conf.partition_label);
+    ESP_LOGI(TAG, "LittleFS unmounted");
 }

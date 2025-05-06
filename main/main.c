@@ -180,4 +180,5 @@ void app_main(void)
 
     http_server_stop(server);
     ap_stop();
+    unmount_storage();
 }
