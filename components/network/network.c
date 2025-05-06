@@ -24,9 +24,9 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t e
                                void *event_data)
 {
     if (event_id == WIFI_EVENT_AP_START) {
-        ESP_LOGI(TAG, "Access Point started\n");
+        ESP_LOGI(TAG, "Access Point started");
     } else if (event_id == WIFI_EVENT_AP_STOP) {
-        ESP_LOGI(TAG, "Access Point stopped\n");
+        ESP_LOGI(TAG, "Access Point stopped");
     }
 }
 
@@ -46,7 +46,7 @@ void setup_wifi(void)
 }
 
 void ap_start() {
-    ESP_LOGI(TAG, "Access Point starting...");
+    ESP_LOGI(TAG, "Starting Access Point...");
 
     wifi_config_t wifi_config = {
         .ap = {
@@ -64,7 +64,7 @@ void ap_start() {
 
 
 void ap_stop() {
-    ESP_LOGI(TAG, "Access Point stopping...");
+    ESP_LOGI(TAG, "Stopping Access Point...");
 
     ESP_ERROR_CHECK(esp_wifi_stop());
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_NULL));
