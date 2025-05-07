@@ -1,6 +1,8 @@
 #include "http_server.h"
+#include "esp_http_server.h"
 #include "esp_log.h"
 #include "freertos/idf_additions.h"
+#include "routes.h"
 
 static const char *TAG = "http_server";
 
@@ -19,26 +21,10 @@ void server_update_task(void *param)
     }
 }
 
-esp_err_t get_position_handler(httpd_req_t *req)
-{
-    server_context_t *ctx = (server_context_t *)req->user_ctx;
-    if (!ctx) {
-        return ESP_FAIL;
-    }
-
-    float x = ctx->position.x;
-    float y = ctx->position.y;
-
-    char json_response[64];
-    snprintf(json_response, sizeof(json_response), "{\"x\": %.2f, \"y\": %.2f}", x, y);
-
-    httpd_resp_set_type(req, "application/json");
-    httpd_resp_send(req, json_response, HTTPD_RESP_USE_STRLEN);
-    return ESP_OK;
-}
-
 ServerWrapper *http_server_start(QueueHandle_t queue)
 {
+    ESP_LOGI(TAG, "Starting Http Server...");
+
     ServerWrapper *server_wrapper = calloc(1, sizeof(ServerWrapper));
     if (!server_wrapper) {
         ESP_LOGE(TAG, "Failed to allocate HttpServer struct");
@@ -74,6 +60,8 @@ ServerWrapper *http_server_start(QueueHandle_t queue)
     }
 
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+    config.uri_match_fn = httpd_uri_match_wildcard;
+
     if (httpd_start(&server_wrapper->server, &config) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to start server");
         vTaskDelete(server_wrapper->task_handle);
@@ -90,13 +78,19 @@ ServerWrapper *http_server_start(QueueHandle_t queue)
                                 .handler = get_position_handler,
                                 .user_ctx = server_wrapper->ctx};
 
+    httpd_uri_t get_static = {
+        .uri = "/*", .method = HTTP_GET, .handler = static_file_handler, .user_ctx = NULL};
+
     httpd_register_uri_handler(server_wrapper->server, &get_position);
+    httpd_register_uri_handler(server_wrapper->server, &get_static);
 
     return server_wrapper;
 }
 
 void http_server_stop(ServerWrapper *server_wrapper)
 {
+    ESP_LOGI(TAG, "Stopping Http Server...");
+
     if (!server_wrapper)
         return;
 

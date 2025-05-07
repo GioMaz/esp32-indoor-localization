@@ -11,9 +11,9 @@ static const esp_vfs_littlefs_conf_t conf = {
     .dont_mount = false,
 };
 
-void setup_storage()
+void mount_storage()
 {
-    ESP_LOGI(TAG, "Initializing LittleFS...");
+    ESP_LOGI(TAG, "Mounting storage (LittleFS)...");
 
     esp_err_t ret = esp_vfs_littlefs_register(&conf);
 
@@ -28,12 +28,12 @@ void setup_storage()
         return;
     }
 
-    ESP_LOGI(TAG, "LittleFS Initialized");
+    ESP_LOGI(TAG, "Storage (LittleFS) mounted at %s", conf.base_path);
 }
 
 void unmount_storage()
 {
-    ESP_LOGI(TAG, "Unmounting LittleFS...");
+    ESP_LOGI(TAG, "Unmounting storage (LittleFS)...");
     esp_vfs_littlefs_unregister(conf.partition_label);
-    ESP_LOGI(TAG, "LittleFS unmounted");
+    ESP_LOGI(TAG, "Storage (LittleFS) unmounted");
 }

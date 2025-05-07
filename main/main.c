@@ -116,7 +116,7 @@ static void setup(void)
     setup_wifi();
 
     // Initialize little fs
-    setup_storage();
+    mount_storage();
 }
 
 void app_main(void)
