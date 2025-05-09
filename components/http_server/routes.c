@@ -1,5 +1,6 @@
 #include "routes.h"
 #include "http_server.h"
+#include "storage.h"
 
 esp_err_t get_position_handler(httpd_req_t *req)
 {
@@ -57,14 +58,13 @@ const char *get_content_type(const char *filepath)
 
 esp_err_t static_file_handler(httpd_req_t *req)
 {
-    const char *base_path = "/littlefs";
-    char filepath[522] = {0};
+    char filepath[PATH_LEN] = {0};
 
     // If URI is "/", map to /index.html
     if (strcmp(req->uri, "/") == 0) {
-        snprintf(filepath, sizeof(filepath), "%s/index.html", base_path);
+        snprintf(filepath, sizeof(filepath), "%s/index.html", BASE_PATH);
     } else {
-        snprintf(filepath, sizeof(filepath), "%s%s", base_path, req->uri);
+        snprintf(filepath, sizeof(filepath), "%s%s", BASE_PATH, req->uri);
     }
 
     FILE *file = fopen(filepath, "r");
