@@ -1,5 +1,5 @@
 idf_component_register(
     SRCS "core.c"
     INCLUDE_DIRS "."
-    PRIV_REQUIRES common network
+    PRIV_REQUIRES scan common network
 )

@@ -10,8 +10,9 @@
 #include "freertos/idf_additions.h"
 #include "nvs_flash.h"
 
-#include "core.h"
 #include "http_server.h"
+#include "core.h"
+#include "scan.h"
 #include "network.h"
 #include "storage.h"
 
@@ -24,9 +25,9 @@
 #include "linenoise/linenoise.h"
 #endif
 
-static const uint32_t MAX_DATAPOINTS = 100;
-static const uint32_t CMD_SIZE = 16;
-static const char *SSID = "unitn-x";
+#define MAX_DATAPOINTS  32
+#define CMD_SIZE        16
+#define SSID            "unitn-x"
 
 static void setup_nvs(void)
 {
@@ -152,16 +153,17 @@ void app_main(void)
             uint16_t ap_count = wifi_scan(aps);
             printf("DONE %d\n", ap_count);
 
-            for (uint16_t i = 0; i < ap_count; i++) {
-                if (count == MAX_DATAPOINTS) {
-                    printf("ERROR: Max number of datapoints reached\n");
-                    while (1)
-                        ;
-                }
-
+            int i = 0;
+            while (i < ap_count && count < MAX_DATAPOINTS) {
                 memcpy(&total_aps[count], &aps[i], sizeof(total_aps[count]));
                 total_labels[count] = (Pos){x, y};
-                count++;
+                i++; count++;
+            }
+
+            if (count == MAX_DATAPOINTS) {
+                printf("ERROR: Max number of datapoints reached\n");
+                while (1)
+                    ;
             }
         } else if (strcmp(cmd, "listen") == 0) {
             printf("Listening...\n");
