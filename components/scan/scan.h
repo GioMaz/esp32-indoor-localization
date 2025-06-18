@@ -2,7 +2,10 @@
 
 #include <stdint.h>
 
-#define MAX_APS 4
+#include "freertos/idf_additions.h"
+#include "common.h"
+
+#define APS_SIZE 4
 #define AP_SCAN_STACK_SIZE 4096
 
 typedef struct {
@@ -12,4 +15,11 @@ typedef struct {
     /*int8_t channel;*/
 } AccessPoint;
 
+typedef struct {
+    QueueHandle_t queue;
+    AccessPoint *total_aps;
+    Pos *total_labels;
+} ScanParams;
+
 uint16_t ap_scan(AccessPoint aps[]);
+TaskHandle_t ap_scan_create(ScanParams *params);

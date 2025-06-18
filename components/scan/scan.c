@@ -1,4 +1,5 @@
 #include "scan.h"
+#include "common.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -7,13 +8,43 @@
 #include "esp_log.h"
 #include "esp_wifi.h"
 #include "esp_wifi_types_generic.h"
+#include "freertos/idf_additions.h"
 
 StaticTask_t ap_scan_tcb;
 StackType_t ap_scan_stack[AP_SCAN_STACK_SIZE];
 
 void ap_scan_code(void *params)
 {
-    // TODO: read (x, y) from queue then scan
+    // Destruct params
+    ScanParams *scan_params = (ScanParams *)params;
+    QueueHandle_t queue     = scan_params->queue;
+    AccessPoint *total_aps  = scan_params->total_aps;
+    Pos *total_labels       = scan_params->total_labels;
+
+    // Setup variables
+    Pos new_position;
+    uint32_t count = 0;
+
+    for (;;) {
+        if (xQueueReceive(queue, &new_position, portMAX_DELAY)) {
+            AccessPoint aps[MAX_DATAPOINTS];
+            uint16_t ap_count = ap_scan(aps);
+            printf("DONE %d\n", ap_count);
+
+            int i = 0;
+            while (i < ap_count && count < MAX_DATAPOINTS) {
+                memcpy(&total_aps[count], &aps[i], sizeof(total_aps[count]));
+                total_labels[count] = new_position;
+                i++; count++;
+            }
+
+            if (count == MAX_DATAPOINTS) {
+                printf("ERROR: Max number of datapoints reached\n");
+                while (1)
+                    ;
+            }
+        }
+    }
 }
 
 static void print_ap(AccessPoint *ap)
@@ -24,8 +55,8 @@ static void print_ap(AccessPoint *ap)
 
 uint16_t ap_scan(AccessPoint aps[])
 {
-    uint16_t number = MAX_APS;
-    wifi_ap_record_t ap_info[MAX_APS];
+    uint16_t number = APS_SIZE;
+    wifi_ap_record_t ap_info[APS_SIZE];
     uint16_t ap_count = 0;
     memset(ap_info, 0, sizeof(ap_info));
 
@@ -56,10 +87,10 @@ uint16_t ap_scan(AccessPoint aps[])
     return ap_count;
 }
 
-TaskHandle_t ap_scan_create()
+TaskHandle_t ap_scan_create(ScanParams *params)
 {
     TaskHandle_t handle =
-        xTaskCreateStatic(ap_scan_code, "ap_scan", AP_SCAN_STACK_SIZE, NULL,
+        xTaskCreateStatic(ap_scan_code, "ap_scan", AP_SCAN_STACK_SIZE, params,
                           tskIDLE_PRIORITY, ap_scan_stack, &ap_scan_tcb);
     return handle;
 }
