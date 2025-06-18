@@ -27,10 +27,11 @@ void app_main(void)
 {
     setup();
 
-    // Setup scan task
+    // Setup dataset
     AccessPoint total_aps[MAX_DATAPOINTS];
     Pos total_labels[MAX_DATAPOINTS];
-    // FeaturesLabel fls[MAX_DATAPOINTS];
+
+    // Setup scan task
     QueueHandle_t scan_queue = xQueueCreate(10, sizeof(Pos));
     ScanParams scan_params = (ScanParams) {
         .queue = scan_queue,
