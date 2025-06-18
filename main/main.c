@@ -52,7 +52,7 @@ void app_main(void)
             printf("TRYING %ld %ld...\n", x, y);
 
             AccessPoint aps[MAX_APS];
-            uint16_t ap_count = wifi_scan(aps);
+            uint16_t ap_count = ap_scan(aps);
             printf("DONE %d\n", ap_count);
 
             int i = 0;
