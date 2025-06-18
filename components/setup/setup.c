@@ -1,8 +1,9 @@
-#include "nvs.h"
 #include "config.h"
-#include "network.h"
-#include "storage.h"
 #include "esp_task_wdt.h"
+#include "gpio.h"
+#include "network.h"
+#include "nvs.h"
+#include "storage.h"
 
 #ifdef CONSOLE
 #include "console.h"
@@ -29,5 +30,7 @@ void setup(void)
 
     // Start access point
     ap_start();
-}
 
+    // Setup gpio
+    setup_gpio();
+}
