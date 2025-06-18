@@ -1,5 +1,6 @@
 #include "scan.h"
 #include "common.h"
+#include "gpio.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -17,16 +18,17 @@ void ap_scan_code(void *params)
 {
     // Destruct params
     ScanParams *scan_params = (ScanParams *)params;
-    QueueHandle_t queue     = scan_params->queue;
-    AccessPoint *total_aps  = scan_params->total_aps;
-    Pos *total_labels       = scan_params->total_labels;
+    QueueHandle_t queue = scan_params->queue;
+    AccessPoint *total_aps = scan_params->total_aps;
+    Pos *total_labels = scan_params->total_labels;
 
     // Setup variables
-    Pos new_position;
+    Direction direction;
+    Pos new_position = {0, 0};
     uint32_t count = 0;
 
     for (;;) {
-        if (xQueueReceive(queue, &new_position, portMAX_DELAY)) {
+        if (xQueueReceive(queue, &direction, portMAX_DELAY)) {
             AccessPoint aps[MAX_DATAPOINTS];
             uint16_t ap_count = ap_scan(aps);
             printf("DONE %d\n", ap_count);
@@ -35,7 +37,8 @@ void ap_scan_code(void *params)
             while (i < ap_count && count < MAX_DATAPOINTS) {
                 memcpy(&total_aps[count], &aps[i], sizeof(total_aps[count]));
                 total_labels[count] = new_position;
-                i++; count++;
+                i++;
+                count++;
             }
 
             if (count == MAX_DATAPOINTS) {
@@ -49,8 +52,9 @@ void ap_scan_code(void *params)
 
 static void print_ap(AccessPoint *ap)
 {
-    printf("SSID: %s, RSSI: %d, MAC: %x:%x:%x:%x:%x:%x\n", ap->ssid, ap->rssi, ap->mac[0], ap->mac[1],
-           ap->mac[2], ap->mac[3], ap->mac[4], ap->mac[5]);
+    printf("SSID: %s, RSSI: %d, MAC: %x:%x:%x:%x:%x:%x\n", ap->ssid, ap->rssi,
+           ap->mac[0], ap->mac[1], ap->mac[2], ap->mac[3], ap->mac[4],
+           ap->mac[5]);
 }
 
 uint16_t ap_scan(AccessPoint aps[])
