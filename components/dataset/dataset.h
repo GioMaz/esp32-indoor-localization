@@ -1,0 +1,25 @@
+#pragma once
+
+#include <stdint.h>
+
+typedef struct {
+    uint8_t mac[6];
+    int8_t rssi;
+} AccessPoint;
+
+#define APS_SIZE 8
+
+typedef struct {
+    AccessPoint aps[APS_SIZE];
+    uint8_t aps_count;
+    Pos pos;
+} Fingerprint;
+
+#define DATASET_SIZE 64
+
+typedef struct {
+    Fingerprint data[DATASET_SIZE];
+    uint32_t data_count;
+} Dataset;
+
+void dataset_append(Dataset *dataset, Fingerprint *fingerprint);

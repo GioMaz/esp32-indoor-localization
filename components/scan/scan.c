@@ -25,41 +25,38 @@ void ap_scan_code(void *params)
 {
     // Destruct params
     ScanParams *scan_params = (ScanParams *)params;
-    QueueHandle_t scan_queue = scan_params->scan_queue;
-    AccessPoint *total_aps = scan_params->total_aps;
-    Pos *total_labels = scan_params->total_labels;
+    QueueHandle_t direction_queue = scan_params->direction_queue;
+    Dataset *dataset = scan_params->dataset;
 
     // Setup variables
     Direction direction;
     Pos position = {0, 0};
-    uint32_t count = 0;
 
     while (1) {
-        if (xQueueReceive(scan_queue, &direction, portMAX_DELAY)) {
+        if (xQueueReceive(direction_queue, &direction, portMAX_DELAY)) {
             // Block if max datapoints reached
-            if (count < MAX_DATAPOINTS) {
+            if (dataset->data_count < DATASET_SIZE) {
                 // Apply direction
                 position.x += dir_to_offset[direction].x;
                 position.y += dir_to_offset[direction].y;
                 printf("Scanning position (%d, %d)\n", position.x, position.y);
 
                 // Create temporary datapoints
-                AccessPoint aps[SCAN_SIZE];
+                AccessPoint aps[APS_SIZE];
 
                 // Scan datapoints
                 uint16_t ap_count = ap_scan(aps);
 
                 // Copy scanned datapoints to dataset
-                int i = 0;
-                while (i < ap_count && count < MAX_DATAPOINTS) {
-                    memcpy(&total_aps[count], &aps[i], sizeof(total_aps[count]));
-                    total_labels[count] = position;
-                    i++;
-                    count++;
+                for (int i = 0; i < ap_count; i++) {
+                    dataset_append_ap()
                 }
+                memcpy(&dataset[data_count].aps, aps, APS_SIZE);
+                dataset[data_count].aps_count = ap_count;
+                dataset->data_count++;
             }
 
-            if (count == MAX_DATAPOINTS) {
+            if (dataset->data_count == MAX_DATAPOINTS) {
                 printf("ERROR: Max number of datapoints reached\n");
             }
         }
@@ -74,33 +71,24 @@ static void print_ap(AccessPoint *ap)
 
 uint16_t ap_scan(AccessPoint aps[])
 {
-    uint16_t number = SCAN_SIZE;
-    wifi_ap_record_t ap_info[SCAN_SIZE];
-    uint16_t ap_count = 0;
+    uint16_t ap_count = APS_SIZE;
+    wifi_ap_record_t ap_info[APS_SIZE];
     memset(ap_info, 0, sizeof(ap_info));
-
-    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
-    ESP_ERROR_CHECK(esp_wifi_start());
 
     esp_wifi_scan_start(NULL, true);
 
-    printf("Max AP number ap_info can hold = %u\n", number);
-    ESP_ERROR_CHECK(esp_wifi_scan_get_ap_num(&ap_count));
-    ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&number, ap_info));
-    printf("Total APs scanned = %u, actual AP number ap_info holds = %u\n",
-           ap_count, number);
+    // ESP_ERROR_CHECK(esp_wifi_scan_get_ap_num(&ap_count));
+    printf("Max scanned APs = %u\n", ap_count);
+    ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&ap_count, ap_info));
+    printf("Scanned APs = %u\n", ap_count);
 
-    for (int i = 0; i < number; i++) {
+    for (int i = 0; i < ap_count; i++) {
         if (strcmp((const char *)ap_info[i].ssid, SSID) == 0) {
-            // memcpy(&aps[i].ssid, &ap_info[i].ssid, sizeof(aps[i].ssid));
             memcpy(&aps[i].mac, &ap_info[i].bssid, sizeof(aps[i].mac));
             aps[i].rssi = ap_info[i].rssi;
 
             print_ap(&aps[i]);
         }
-        // printf("SSID \t\t%s\n", ap_info[i].ssid);
-        // printf("RSSI \t\t%d\n", ap_info[i].rssi);
-        // printf("Channel \t\t%d\n", ap_info[i].primary);
     }
 
     esp_wifi_scan_stop();

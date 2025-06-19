@@ -28,24 +28,22 @@ void app_main(void)
     setup();
 
     // Create empty dataset
-    AccessPoint total_aps[MAX_DATAPOINTS];
-    Pos total_labels[MAX_DATAPOINTS];
+    Dataset dataset;
 
     // Create server task
     QueueHandle_t server_queue = xQueueCreate(10, sizeof(Pos));
     ServerWrapper *server = http_server_start(server_queue);
 
     // Create scan task
-    QueueHandle_t scan_queue = xQueueCreate(10, sizeof(Pos));
+    QueueHandle_t direction_queue = xQueueCreate(10, sizeof(Pos));
     ScanParams scan_params = (ScanParams){
         scan_queue,
-        total_aps,
-        total_labels,
+        &dataset,
     };
     TaskHandle_t scan = ap_scan_create(&scan_params);
 
     // Create gpio task
-    GpioParams gpio_params = { scan_queue };
+    GpioParams gpio_params = { direction_queue };
     TaskHandle_t gpio_task = gpio_task_create(&gpio_params);
 
     while (1)
