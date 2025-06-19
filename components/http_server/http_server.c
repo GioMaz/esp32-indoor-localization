@@ -81,12 +81,18 @@ ServerWrapper *http_server_start(QueueHandle_t queue, const Dataset *dataset)
                                 .handler = get_position_handler,
                                 .user_ctx = server_wrapper->ctx};
 
+    httpd_uri_t get_dataset = {.uri = "/api/dataset",
+                               .method = HTTP_GET,
+                               .handler = get_dataset_handler,
+                               .user_ctx = server_wrapper->ctx};
+
     httpd_uri_t get_static = {.uri = "/*",
                               .method = HTTP_GET,
                               .handler = static_file_handler,
                               .user_ctx = NULL};
 
     httpd_register_uri_handler(server_wrapper->server, &get_position);
+    httpd_register_uri_handler(server_wrapper->server, &get_dataset);
     httpd_register_uri_handler(server_wrapper->server, &get_static);
 
     return server_wrapper;

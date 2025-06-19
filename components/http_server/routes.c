@@ -1,4 +1,5 @@
 #include "routes.h"
+#include "dataset.h"
 #include "http_server.h"
 #include "storage.h"
 
@@ -13,20 +14,31 @@ esp_err_t get_position_handler(httpd_req_t *req)
     float y = ctx->position.y;
 
     char json_response[64];
-    snprintf(json_response, sizeof(json_response), "{\"x\": %.2f, \"y\": %.2f}", x, y);
+    snprintf(json_response, sizeof(json_response), "{\"x\": %.2f, \"y\": %.2f}",
+             x, y);
 
     httpd_resp_set_type(req, "application/json");
     httpd_resp_send(req, json_response, HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
 }
 
-esp_err_t get_dataset_handler(httpd_req_t *req) {
+esp_err_t get_dataset_handler(httpd_req_t *req)
+{
 
     server_context_t *ctx = (server_context_t *)req->user_ctx;
-    if (!ctx) {
+    if (!ctx || !ctx->dataset) {
         return ESP_FAIL;
     }
 
+    // Set headers for binary transfer
+    httpd_resp_set_type(req, "application/octet-stream");
+    httpd_resp_set_hdr(req, "Content-Disposition",
+                       "attachment; filename=\"dataset.bin\"");
+
+    // End chunked transfer
+    httpd_resp_send_chunk(req, (const char *)ctx->dataset, sizeof(Dataset));
+
+    return ESP_OK;
 }
 
 const char *get_content_type(const char *filepath)

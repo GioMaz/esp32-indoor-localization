@@ -1,8 +1,8 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "dataset.h"
 #include "common.h"
+#include "dataset.h"
 
 void dataset_init(Dataset *dataset)
 {
