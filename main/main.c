@@ -9,8 +9,9 @@
 #include "freertos/event_groups.h"
 #include "freertos/idf_additions.h"
 
-#include "common.h"
+#include "utils.h"
 #include "gpio.h"
+#include "core.h"
 #include "http_server.h"
 #include "scan.h"
 #include "setup.h"
@@ -20,6 +21,11 @@
 #include "linenoise/linenoise.h"
 #define CMD_SIZE 16
 #endif
+
+typedef enum {
+    STATE_TRAINING,
+    STATE_INFERENCE,
+} State;
 
 void app_main(void)
 {
@@ -37,9 +43,9 @@ void app_main(void)
     }
 
     // Create server task
-    QueueHandle_t server_queue = xQueueCreate(10, sizeof(Pos));
+    QueueHandle_t position_queue = xQueueCreate(10, sizeof(Pos));
     ServerWrapper *server =
-        http_server_start(server_queue, (const Dataset *)&dataset);
+        http_server_start(position_queue, (const Dataset *)&dataset);
 
     // Create scan task
     QueueHandle_t direction_queue = xQueueCreate(10, sizeof(Pos));
@@ -53,52 +59,18 @@ void app_main(void)
     GpioParams gpio_params = {direction_queue};
     TaskHandle_t gpio_task = gpio_task_create(&gpio_params);
 
+    // Setup training/inference data
+    State state = STATE_TRAINING;
+    Pos pos = {0, 0};
+
     while (1) {
+        switch (state) {
+            case STATE_TRAINING:
+                handle_training_state(&dataset, &pos, direction_queue);
+                break;
+            case STATE_INFERENCE:
+                handle_inference_state(&dataset, &pos, position_queue);
+                break;
+        }
     }
-
-    // // REPL
-    // while (1) {
-    //     char *line = linenoise("> ");
-    //
-    //     char cmd[CMD_SIZE];
-    //     sscanf(line, "%s ", cmd);
-    //
-    //     if (strcmp(cmd, "reg") == 0) {
-    //         int32_t x, y;
-    //         sscanf(line, "%*s %ld %ld\n", &x, &y);
-    //
-    //         printf("TRYING %ld %ld...\n", x, y);
-    //
-    //         AccessPoint aps[MAX_APS];
-    //         uint16_t ap_count = ap_scan(aps);
-    //         printf("DONE %d\n", ap_count);
-    //
-    //         int i = 0;
-    //         while (i < ap_count && count < MAX_DATAPOINTS) {
-    //             memcpy(&total_aps[count], &aps[i], sizeof(total_aps[count]));
-    //             total_labels[count] = (Pos){x, y};
-    //             i++; count++;
-    //         }
-    //
-    //         if (count == MAX_DATAPOINTS) {
-    //             printf("ERROR: Max number of datapoints reached\n");
-    //             while (1)
-    //                 ;
-    //         }
-    //     } else if (strcmp(cmd, "listen") == 0) {
-    //         printf("Listening...\n");
-    //         while (1)
-    //             ;
-    //     } else if (strcmp(cmd, "quit") == 0) {
-    //         printf("Completed...\n");
-    //         while (1)
-    //             ;
-    //     }
-    //
-    //     linenoiseFree(line);
-    // }
-
-    // http_server_stop(server);
-    // ap_stop();
-    // unmount_storage();
 }

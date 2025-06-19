@@ -2,8 +2,20 @@
 #include <float.h>
 #include <string.h>
 
+#include "freertos/idf_additions.h"
+
 #include "dataset.h"
 #include "core.h"
+#include "scan.h"
+
+void handle_inference_state(Dataset *dataset, Pos *pos, QueueHandle_t position_queue)
+{
+    Query query;
+    query.aps_count = ap_scan(query.aps);
+
+    inference(dataset, &query, pos);
+    xQueueSend(position_queue, (void *)pos, 0);
+}
 
 void inference(Dataset *dataset, Query *query, Pos *result)
 {

@@ -1,7 +1,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "common.h"
+#include "utils.h"
 #include "dataset.h"
 
 void dataset_init(Dataset *dataset)

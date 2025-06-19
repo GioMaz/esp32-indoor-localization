@@ -3,7 +3,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "common.h"
+#include "utils.h"
 
 typedef struct {
     uint8_t mac[6];
@@ -26,4 +26,4 @@ typedef struct {
 } Dataset;
 
 void dataset_init(Dataset *dataset);
-void dataset_insert_ap(Dataset *dataset, AccessPoint *ap, Pos position);
+void dataset_insert_ap(Dataset *dataset, AccessPoint *ap, Pos pos);

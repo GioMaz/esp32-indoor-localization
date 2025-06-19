@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-#include "common.h"
+#include "utils.h"
 #include "dataset.h"
 #include "freertos/idf_additions.h"
 
@@ -16,3 +16,4 @@ typedef struct {
 
 uint16_t ap_scan(AccessPoint aps[]);
 TaskHandle_t ap_scan_create(ScanParams *params);
+void handle_training_state(Dataset *dataset, Pos *pos, QueueHandle_t direction_queue);

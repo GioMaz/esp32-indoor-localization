@@ -22,6 +22,35 @@ Pos dir_to_offset[] = {
     [DOWN] = {0, -1},
 };
 
+void handle_training_state(Dataset *dataset, Pos *pos, QueueHandle_t direction_queue)
+{
+    Direction direction;
+    if (xQueueReceive(direction_queue, &direction, portMAX_DELAY)) {
+        // Block if max datapoints reached
+        if (dataset->data_count < DATASET_SIZE) {
+            // Apply direction
+            pos->x += dir_to_offset[direction].x;
+            pos->y += dir_to_offset[direction].y;
+            printf("Scanning position (%d, %d)\n", pos->x, pos->y);
+
+            // Create temporary datapoints
+            AccessPoint aps[APS_SIZE];
+
+            // Scan datapoints
+            uint16_t ap_count = ap_scan(aps);
+
+            // Copy scanned datapoints to dataset
+            for (int i = 0; i < ap_count; i++) {
+                dataset_insert_ap(dataset, &aps[i], *pos);
+            }
+        }
+
+        if (dataset->data_count == DATASET_SIZE) {
+            printf("ERROR: Max number of datapoints reached\n");
+        }
+    }
+}
+
 void ap_scan_code(void *params)
 {
     // Destruct params
