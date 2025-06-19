@@ -17,9 +17,9 @@ void inference(Dataset *dataset, Query *query, Pos *result)
 
         // Cycle through every AP of the fingerprint
         for (int j = 0; j < dataset->data[i].aps_count; j++) {
-            AccessPoint *ap_fingerprint = &dataset->data[i].aps[j];
             // Cycle through every AP of the query
             for (int k = 0; k < query->aps_count; k++) {
+                AccessPoint *ap_fingerprint = &dataset->data[i].aps[j];
                 AccessPoint *ap_query = &query->aps[k];
                 if (!memcmp(ap_fingerprint->mac, ap_query->mac, sizeof(ap_query->mac))) {
                     dists[i] += abs(ap_fingerprint->rssi - ap_query->rssi);

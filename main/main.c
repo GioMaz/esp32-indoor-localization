@@ -47,8 +47,8 @@ void app_main(void)
     GpioParams gpio_params = { direction_queue };
     TaskHandle_t gpio_task = gpio_task_create(&gpio_params);
 
-    while (1)
-        ;
+    while (1) {
+    }
 
     // // REPL
     // while (1) {
