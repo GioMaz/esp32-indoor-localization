@@ -1,4 +1,4 @@
-#include "network.h"
+#include "wifi.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -8,11 +8,7 @@
 #include "esp_wifi.h"
 #include "esp_wifi_types_generic.h"
 
-#define AP_WIFI_SSID "martin_router_king"
-#define AP_WIFI_PASS "ciao123456"
-#define AP_WIFI_MAX_STA_CONN 3
-
-static const char *TAG = "network";
+static const char *TAG = "wifi";
 
 static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id,
         void *event_data)

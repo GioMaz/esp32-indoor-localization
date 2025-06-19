@@ -1,12 +1,12 @@
 #include "config.h"
 #include "esp_task_wdt.h"
 #include "gpio.h"
-#include "network.h"
+#include "wifi.h"
 #include "nvs.h"
 #include "storage.h"
 
-#ifdef CONSOLE
-#include "console.h"
+#ifdef REPL
+#include "repl.h"
 #endif
 
 void setup(void)
@@ -15,8 +15,8 @@ void setup(void)
     esp_task_wdt_deinit();
 
     // Setup console
-#ifdef CONSOLE
-    setup_console();
+#ifdef REPL
+    setup_repl();
 #endif
 
     // Initialize Non-Volatile Storage

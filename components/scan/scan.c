@@ -34,29 +34,31 @@ void ap_scan_code(void *params)
     Pos position = {0, 0};
     uint32_t count = 0;
 
-    for (;;) {
+    while (1) {
         if (xQueueReceive(scan_queue, &direction, portMAX_DELAY)) {
-            // Apply direction
-            position.x += dir_to_offset[direction].x;
-            position.y += dir_to_offset[direction].y;
-            printf("Scanning position (%d, %d)\n", position.x, position.y);
+            // Block if max datapoints reached
+            if (count < MAX_DATAPOINTS) {
+                // Apply direction
+                position.x += dir_to_offset[direction].x;
+                position.y += dir_to_offset[direction].y;
+                printf("Scanning position (%d, %d)\n", position.x, position.y);
 
-            // Create temporary datapoints
-            AccessPoint aps[APS_SIZE];
+                // Create temporary datapoints
+                AccessPoint aps[SCAN_SIZE];
 
-            // Scan datapoints
-            uint16_t ap_count = ap_scan(aps);
+                // Scan datapoints
+                uint16_t ap_count = ap_scan(aps);
 
-            // Copy scanned datapoints to dataset
-            int i = 0;
-            while (i < ap_count && count < MAX_DATAPOINTS) {
-                memcpy(&total_aps[count], &aps[i], sizeof(total_aps[count]));
-                total_labels[count] = position;
-                i++;
-                count++;
+                // Copy scanned datapoints to dataset
+                int i = 0;
+                while (i < ap_count && count < MAX_DATAPOINTS) {
+                    memcpy(&total_aps[count], &aps[i], sizeof(total_aps[count]));
+                    total_labels[count] = position;
+                    i++;
+                    count++;
+                }
             }
 
-            // Block if max datapoints reached
             if (count == MAX_DATAPOINTS) {
                 printf("ERROR: Max number of datapoints reached\n");
             }
@@ -72,8 +74,8 @@ static void print_ap(AccessPoint *ap)
 
 uint16_t ap_scan(AccessPoint aps[])
 {
-    uint16_t number = APS_SIZE;
-    wifi_ap_record_t ap_info[APS_SIZE];
+    uint16_t number = SCAN_SIZE;
+    wifi_ap_record_t ap_info[SCAN_SIZE];
     uint16_t ap_count = 0;
     memset(ap_info, 0, sizeof(ap_info));
 

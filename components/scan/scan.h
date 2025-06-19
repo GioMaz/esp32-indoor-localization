@@ -5,7 +5,7 @@
 #include "freertos/idf_additions.h"
 #include "common.h"
 
-#define APS_SIZE 8
+#define SCAN_SIZE 8
 #define AP_SCAN_STACK_SIZE 4096
 
 typedef struct {

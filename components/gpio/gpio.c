@@ -46,8 +46,6 @@ void gpio_task_code(void *params)
     GpioParams *gpio_params = (GpioParams *)params;
     QueueHandle_t scan_queue = gpio_params->scan_queue;
 
-    bool last_state[NUM_BTNS] = {false};
-
     Direction direction;
 
     while (1) {
@@ -66,6 +64,7 @@ void gpio_task_code(void *params)
 TaskHandle_t gpio_task_create(GpioParams *gpio_params)
 {
     TaskHandle_t handle =
-        xTaskCreateStatic(gpio_task_code, "gpio_task", GPIO_STACK_SIZE, gpio_params, tskIDLE_PRIORITY, gpio_stack, &gpio_tcb);
+        xTaskCreateStatic(gpio_task_code, "gpio_task", GPIO_STACK_SIZE,
+                          gpio_params, tskIDLE_PRIORITY, gpio_stack, &gpio_tcb);
     return handle;
 }

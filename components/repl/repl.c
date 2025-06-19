@@ -3,7 +3,7 @@
 #include "esp_vfs_dev.h"
 #include "linenoise/linenoise.h"
 
-void setup_console(void)
+void setup_repl(void)
 {
     /* Drain stdout before reconfiguring it */
     fflush(stdout);
