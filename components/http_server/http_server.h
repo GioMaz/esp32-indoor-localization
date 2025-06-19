@@ -13,18 +13,19 @@
  */
 typedef struct {
     Pos position; /**< Current position of the user */
-    const Dataset * dataset;
+    const Dataset *dataset;
+    QueueHandle_t state_queue;
 } server_context_t;
 
 /**
  * @brief Update task arguments structure
  *
- * Contains the server context and the queue used for communication between tasks,
- * specifically for updating the server's position.
+ * Contains the server context and the queue used for communication between
+ * tasks, specifically for updating the server's position.
  */
 typedef struct {
-    server_context_t *ctx; /**< Pointer to the server context */
-    QueueHandle_t queue;   /**< Queue to receive position updates */
+    server_context_t *ctx;        /**< Pointer to the server context */
+    QueueHandle_t position_queue; /**< Queue to receive position updates */
 } update_task_args_t;
 
 /**
@@ -43,16 +44,19 @@ typedef struct {
 /**
  * @brief Starts the HTTP server
  *
- * Initializes and starts the HTTP server on the default port. It also registers the
- * handler for the GET request that provides the server's position. Additionally,
- * it creates a task that periodically updates the server's position via the queue.
+ * Initializes and starts the HTTP server on the default port. It also registers
+ * the handler for the GET request that provides the server's position.
+ * Additionally, it creates a task that periodically updates the server's
+ * position via the queue.
  *
  * @param queue The queue used to receive position updates
  *
  * @return A pointer to a `ServerWrapper` object if the start is successful,
  *         otherwise `NULL`.
  */
-ServerWrapper *http_server_start(QueueHandle_t queue, const Dataset * dataset);
+ServerWrapper *http_server_start(QueueHandle_t position_queue,
+                                 QueueHandle_t state_queue,
+                                 const Dataset *dataset);
 
 /**
  * @brief Stops the HTTP server
@@ -65,4 +69,3 @@ ServerWrapper *http_server_start(QueueHandle_t queue, const Dataset * dataset);
  *               server and associated resources to stop and free.
  */
 void http_server_stop(ServerWrapper *server);
-

@@ -11,7 +11,7 @@ void server_update_task(void *param)
 {
     update_task_args_t *args = (update_task_args_t *)param;
     server_context_t *ctx = args->ctx;
-    QueueHandle_t queue = args->queue;
+    QueueHandle_t queue = args->position_queue;
 
     Pos new_position;
 
@@ -22,7 +22,9 @@ void server_update_task(void *param)
     }
 }
 
-ServerWrapper *http_server_start(QueueHandle_t queue, const Dataset *dataset)
+ServerWrapper *http_server_start(QueueHandle_t position_queue,
+                                 QueueHandle_t state_queue,
+                                 const Dataset *dataset)
 {
     ESP_LOGI(TAG, "Starting Http Server...");
 
@@ -40,6 +42,7 @@ ServerWrapper *http_server_start(QueueHandle_t queue, const Dataset *dataset)
     }
     server_wrapper->ctx->position = (Pos){.x = 0, .y = 0};
     server_wrapper->ctx->dataset = dataset;
+    server_wrapper->ctx->state_queue = state_queue;
 
     server_wrapper->task_args = calloc(1, sizeof(update_task_args_t));
     if (!server_wrapper->task_args) {
@@ -50,7 +53,7 @@ ServerWrapper *http_server_start(QueueHandle_t queue, const Dataset *dataset)
     }
 
     server_wrapper->task_args->ctx = server_wrapper->ctx;
-    server_wrapper->task_args->queue = queue;
+    server_wrapper->task_args->position_queue = position_queue;
 
     if (xTaskCreate(server_update_task, "server_update", 2048,
                     server_wrapper->task_args, 5,
@@ -86,6 +89,11 @@ ServerWrapper *http_server_start(QueueHandle_t queue, const Dataset *dataset)
                                .handler = get_dataset_handler,
                                .user_ctx = server_wrapper->ctx};
 
+    httpd_uri_t switch_state = {.uri = "/api/switchState",
+                                .method = HTTP_POST,
+                                .handler = post_switch_state_handler,
+                                .user_ctx = server_wrapper->ctx};
+
     httpd_uri_t get_static = {.uri = "/*",
                               .method = HTTP_GET,
                               .handler = static_file_handler,
@@ -93,6 +101,7 @@ ServerWrapper *http_server_start(QueueHandle_t queue, const Dataset *dataset)
 
     httpd_register_uri_handler(server_wrapper->server, &get_position);
     httpd_register_uri_handler(server_wrapper->server, &get_dataset);
+    httpd_register_uri_handler(server_wrapper->server, &switch_state);
     httpd_register_uri_handler(server_wrapper->server, &get_static);
 
     return server_wrapper;
