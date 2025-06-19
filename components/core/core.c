@@ -1,3 +1,41 @@
+#include <math.h>
+#include <float.h>
+#include <string.h>
+
+#include "dataset.h"
+#include "core.h"
+
+void inference(Dataset *dataset, Query *query, Pos *result)
+{
+    // dataset->data_count
+    double dists[DATASET_SIZE];
+
+    // Cycle through every fingerprint
+    for (int i = 0; i < dataset->data_count; i++) {
+        dists[i] = 0;
+        int dists_count = 0;
+
+        // Cycle through every AP of the fingerprint
+        for (int j = 0; j < dataset->data[i].aps_count; j++) {
+            AccessPoint *ap_fingerprint = &dataset->data[i].aps[j];
+            // Cycle through every AP of the query
+            for (int k = 0; k < query->aps_count; k++) {
+                AccessPoint *ap_query = &query->aps[k];
+                if (!memcmp(ap_fingerprint->mac, ap_query->mac, sizeof(ap_query->mac))) {
+                    dists[i] += abs(ap_fingerprint->rssi - ap_query->rssi);
+                    dists_count += 1;
+                }
+            }
+        }
+
+        if (dists_count == 0) {
+            dists[i] += DBL_MAX;
+        } else {
+            dists[i] /= dists_count * dists_count;
+        }
+    }
+}
+
 // #include "core.h"
 //
 // #include <math.h>
