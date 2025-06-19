@@ -54,7 +54,7 @@ void ap_scan_code(void *params)
                 }
             }
 
-            if (dataset->data_count == MAX_DATAPOINTS) {
+            if (dataset->data_count == DATASET_SIZE) {
                 printf("ERROR: Max number of datapoints reached\n");
             }
         }
