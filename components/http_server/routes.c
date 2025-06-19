@@ -27,6 +27,7 @@ esp_err_t get_dataset_handler(httpd_req_t *req) {
         return ESP_FAIL;
     }
 
+    return 0;
 }
 
 const char *get_content_type(const char *filepath)
