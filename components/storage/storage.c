@@ -1,6 +1,7 @@
 #include "storage.h"
 #include "esp_littlefs.h"
 #include "esp_log.h"
+#include <stdio.h>
 
 static const char *TAG = "storage";
 
@@ -23,7 +24,8 @@ void mount_storage()
         } else if (ret == ESP_ERR_NOT_FOUND) {
             ESP_LOGE(TAG, "Failed to find LittleFS partition");
         } else {
-            ESP_LOGE(TAG, "Failed to initialize LittleFS (%s)", esp_err_to_name(ret));
+            ESP_LOGE(TAG, "Failed to initialize LittleFS (%s)",
+                     esp_err_to_name(ret));
         }
         return;
     }
@@ -36,4 +38,18 @@ void unmount_storage()
     ESP_LOGI(TAG, "Unmounting storage (LittleFS)...");
     esp_vfs_littlefs_unregister(conf.partition_label);
     ESP_LOGI(TAG, "Storage (LittleFS) unmounted");
+}
+
+int read_dataset_from_storage(Dataset *dataset)
+{
+
+    char filepath[PATH_LEN] = {0};
+    snprintf(filepath, sizeof(filepath), "%s/dataset.bin", BASE_PATH);
+
+    FILE *file = fopen(filepath, "r");
+    if (!file) {
+        return 1;
+    }
+
+    return fread((char *)dataset, 1, sizeof(Dataset), file) == 0;
 }

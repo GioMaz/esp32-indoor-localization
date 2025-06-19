@@ -10,12 +10,11 @@
 #include "freertos/idf_additions.h"
 
 #include "common.h"
-#include "config.h"
-#include "core.h"
 #include "gpio.h"
 #include "http_server.h"
 #include "scan.h"
 #include "setup.h"
+#include "storage.h"
 
 #ifdef CONSOLE
 #include "linenoise/linenoise.h"
@@ -31,9 +30,16 @@ void app_main(void)
     Dataset dataset;
     dataset_init(&dataset);
 
+    if (!read_dataset_from_storage(&dataset)) {
+        printf("DATASET LOADED\n");
+    } else {
+        printf("DATASET EMPTY\n");
+    }
+
     // Create server task
     QueueHandle_t server_queue = xQueueCreate(10, sizeof(Pos));
-    ServerWrapper *server = http_server_start(server_queue, (const Dataset *)&dataset);
+    ServerWrapper *server =
+        http_server_start(server_queue, (const Dataset *)&dataset);
 
     // Create scan task
     QueueHandle_t direction_queue = xQueueCreate(10, sizeof(Pos));
@@ -44,7 +50,7 @@ void app_main(void)
     TaskHandle_t scan = ap_scan_create(&scan_params);
 
     // Create gpio task
-    GpioParams gpio_params = { direction_queue };
+    GpioParams gpio_params = {direction_queue};
     TaskHandle_t gpio_task = gpio_task_create(&gpio_params);
 
     while (1) {

@@ -35,8 +35,10 @@ esp_err_t get_dataset_handler(httpd_req_t *req)
     httpd_resp_set_hdr(req, "Content-Disposition",
                        "attachment; filename=\"dataset.bin\"");
 
+    printf("dataset size %ld\n", ctx->dataset->data_count);
+
     // End chunked transfer
-    httpd_resp_send_chunk(req, (const char *)ctx->dataset, sizeof(Dataset));
+    httpd_resp_send(req, (const char *)ctx->dataset, sizeof(Dataset));
 
     return ESP_OK;
 }
