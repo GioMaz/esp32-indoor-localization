@@ -24,4 +24,5 @@ typedef struct {
     uint32_t data_count;
 } Dataset;
 
+void dataset_init(Dataset *dataset);
 void dataset_insert_ap(Dataset *dataset, AccessPoint *ap, Pos position);

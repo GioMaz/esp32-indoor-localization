@@ -29,6 +29,7 @@ void app_main(void)
 
     // Create empty dataset
     Dataset dataset;
+    dataset_init(&dataset);
 
     // Create server task
     QueueHandle_t server_queue = xQueueCreate(10, sizeof(Pos));
