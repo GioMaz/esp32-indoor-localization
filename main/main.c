@@ -11,7 +11,7 @@
 
 #include "utils.h"
 #include "gpio.h"
-#include "core.h"
+#include "inference.h"
 #include "http_server.h"
 #include "scan.h"
 #include "setup.h"

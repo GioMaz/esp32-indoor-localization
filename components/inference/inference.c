@@ -4,8 +4,8 @@
 
 #include "freertos/idf_additions.h"
 
+#include "inference.h"
 #include "dataset.h"
-#include "core.h"
 #include "scan.h"
 
 void handle_inference_state(Dataset *dataset, Pos *pos, QueueHandle_t position_queue)
