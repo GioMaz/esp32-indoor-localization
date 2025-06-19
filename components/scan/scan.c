@@ -39,6 +39,7 @@ void ap_scan_code(void *params)
             // Apply direction
             position.x += dir_to_offset[direction].x;
             position.y += dir_to_offset[direction].y;
+            printf("Scanning position (%d, %d)\n", position.x, position.y);
 
             // Create temporary datapoints
             AccessPoint aps[APS_SIZE];
@@ -58,8 +59,6 @@ void ap_scan_code(void *params)
             // Block if max datapoints reached
             if (count == MAX_DATAPOINTS) {
                 printf("ERROR: Max number of datapoints reached\n");
-                while (1)
-                    ;
             }
         }
     }
@@ -67,9 +66,8 @@ void ap_scan_code(void *params)
 
 static void print_ap(AccessPoint *ap)
 {
-    printf("SSID: %s, RSSI: %d, MAC: %x:%x:%x:%x:%x:%x\n", ap->ssid, ap->rssi,
-           ap->mac[0], ap->mac[1], ap->mac[2], ap->mac[3], ap->mac[4],
-           ap->mac[5]);
+    printf("RSSI: %d, MAC: %x:%x:%x:%x:%x:%x\n", ap->rssi, ap->mac[0],
+           ap->mac[1], ap->mac[2], ap->mac[3], ap->mac[4], ap->mac[5]);
 }
 
 uint16_t ap_scan(AccessPoint aps[])
@@ -91,11 +89,13 @@ uint16_t ap_scan(AccessPoint aps[])
            ap_count, number);
 
     for (int i = 0; i < number; i++) {
-        memcpy(&aps[i].ssid, &ap_info[i].ssid, sizeof(aps[i].ssid));
-        memcpy(&aps[i].mac, &ap_info[i].bssid, sizeof(aps[i].mac));
-        aps[i].rssi = ap_info[i].rssi;
+        if (strcmp((const char *)ap_info[i].ssid, SSID) == 0) {
+            // memcpy(&aps[i].ssid, &ap_info[i].ssid, sizeof(aps[i].ssid));
+            memcpy(&aps[i].mac, &ap_info[i].bssid, sizeof(aps[i].mac));
+            aps[i].rssi = ap_info[i].rssi;
 
-        print_ap(&aps[i]);
+            print_ap(&aps[i]);
+        }
         // printf("SSID \t\t%s\n", ap_info[i].ssid);
         // printf("RSSI \t\t%d\n", ap_info[i].rssi);
         // printf("Channel \t\t%d\n", ap_info[i].primary);

@@ -11,10 +11,10 @@
 
 #define NUM_BTNS 4
 
-#define BTN1 23
-#define BTN2 22
-#define BTN3 3
-#define BTN4 21
+#define BTN1 21
+#define BTN2 3
+#define BTN3 22
+#define BTN4 23
 
 volatile bool btn_pressed[NUM_BTNS] = {false};
 gpio_num_t btn_pins[NUM_BTNS] = {BTN1, BTN2, BTN3, BTN4};

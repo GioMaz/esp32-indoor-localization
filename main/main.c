@@ -19,10 +19,8 @@
 
 #ifdef CONSOLE
 #include "linenoise/linenoise.h"
-#endif
-
 #define CMD_SIZE 16
-#define SSID "unitn-x"
+#endif
 
 void app_main(void)
 {
@@ -50,47 +48,50 @@ void app_main(void)
     GpioParams gpio_params = { scan_queue };
     TaskHandle_t gpio_task = gpio_task_create(&gpio_params);
 
-    // Loop
-    while (1) {
-        // char *line = linenoise("> ");
-        //
-        // char cmd[CMD_SIZE];
-        // sscanf(line, "%s ", cmd);
-        //
-        // if (strcmp(cmd, "reg") == 0) {
-        //     int32_t x, y;
-        //     sscanf(line, "%*s %ld %ld\n", &x, &y);
-        //
-        //     printf("TRYING %ld %ld...\n", x, y);
-        //
-        //     AccessPoint aps[MAX_APS];
-        //     uint16_t ap_count = ap_scan(aps);
-        //     printf("DONE %d\n", ap_count);
-        //
-        //     int i = 0;
-        //     while (i < ap_count && count < MAX_DATAPOINTS) {
-        //         memcpy(&total_aps[count], &aps[i], sizeof(total_aps[count]));
-        //         total_labels[count] = (Pos){x, y};
-        //         i++; count++;
-        //     }
-        //
-        //     if (count == MAX_DATAPOINTS) {
-        //         printf("ERROR: Max number of datapoints reached\n");
-        //         while (1)
-        //             ;
-        //     }
-        // } else if (strcmp(cmd, "listen") == 0) {
-        //     printf("Listening...\n");
-        //     while (1)
-        //         ;
-        // } else if (strcmp(cmd, "quit") == 0) {
-        //     printf("Completed...\n");
-        //     while (1)
-        //         ;
-        // }
-        //
-        // linenoiseFree(line);
-    }
+    while (1)
+        ;
+
+    // // REPL
+    // while (1) {
+    //     char *line = linenoise("> ");
+    //
+    //     char cmd[CMD_SIZE];
+    //     sscanf(line, "%s ", cmd);
+    //
+    //     if (strcmp(cmd, "reg") == 0) {
+    //         int32_t x, y;
+    //         sscanf(line, "%*s %ld %ld\n", &x, &y);
+    //
+    //         printf("TRYING %ld %ld...\n", x, y);
+    //
+    //         AccessPoint aps[MAX_APS];
+    //         uint16_t ap_count = ap_scan(aps);
+    //         printf("DONE %d\n", ap_count);
+    //
+    //         int i = 0;
+    //         while (i < ap_count && count < MAX_DATAPOINTS) {
+    //             memcpy(&total_aps[count], &aps[i], sizeof(total_aps[count]));
+    //             total_labels[count] = (Pos){x, y};
+    //             i++; count++;
+    //         }
+    //
+    //         if (count == MAX_DATAPOINTS) {
+    //             printf("ERROR: Max number of datapoints reached\n");
+    //             while (1)
+    //                 ;
+    //         }
+    //     } else if (strcmp(cmd, "listen") == 0) {
+    //         printf("Listening...\n");
+    //         while (1)
+    //             ;
+    //     } else if (strcmp(cmd, "quit") == 0) {
+    //         printf("Completed...\n");
+    //         while (1)
+    //             ;
+    //     }
+    //
+    //     linenoiseFree(line);
+    // }
 
     // http_server_stop(server);
     // ap_stop();
