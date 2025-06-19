@@ -4,6 +4,11 @@
 #include "dataset.h"
 #include "common.h"
 
+void dataset_init(Dataset *dataset)
+{
+    dataset->data_count = 0;
+}
+
 void dataset_insert_ap(Dataset *dataset, AccessPoint *ap, Pos pos)
 {
     // Get fingerprint from dataset given the position
