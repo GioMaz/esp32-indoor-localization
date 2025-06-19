@@ -37,7 +37,7 @@ void app_main(void)
     // Create scan task
     QueueHandle_t direction_queue = xQueueCreate(10, sizeof(Pos));
     ScanParams scan_params = (ScanParams){
-        scan_queue,
+        direction_queue,
         &dataset,
     };
     TaskHandle_t scan = ap_scan_create(&scan_params);

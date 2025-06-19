@@ -1,5 +1,6 @@
 #include "scan.h"
 #include "config.h"
+#include "dataset.h"
 #include "gpio.h"
 
 #include <assert.h>
@@ -49,11 +50,8 @@ void ap_scan_code(void *params)
 
                 // Copy scanned datapoints to dataset
                 for (int i = 0; i < ap_count; i++) {
-                    dataset_append_ap()
+                    dataset_insert_ap(dataset, &aps[i], position);
                 }
-                memcpy(&dataset[data_count].aps, aps, APS_SIZE);
-                dataset[data_count].aps_count = ap_count;
-                dataset->data_count++;
             }
 
             if (dataset->data_count == MAX_DATAPOINTS) {

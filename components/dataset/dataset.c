@@ -1,11 +1,10 @@
+#include <stdbool.h>
+#include <string.h>
+
 #include "dataset.h"
+#include "common.h"
 
-// void dataset_append(Dataset *dataset, Fingerprint *fingerprint)
-// {
-//     memcpy(&dataset->data[dataset->data_count], fingerprint, sizeof(fingerprint));
-// }
-
-void dataset_append_ap(Dataset *dataset, AccessPoint *ap, Pos pos)
+void dataset_insert_ap(Dataset *dataset, AccessPoint *ap, Pos pos)
 {
     // Get fingerprint from dataset given the position
     int idx = -1;
@@ -19,12 +18,12 @@ void dataset_append_ap(Dataset *dataset, AccessPoint *ap, Pos pos)
 
     if (idx < 0) {
         idx = dataset->data_count;
+        dataset->data_count += 1;
     }
 
     Fingerprint *fingerprint = &dataset->data[idx];
 
     // Copy AP into fingerprint
-    memcpy(&fingerprint->aps[aps_count], ap, sizeof(ap));
+    memcpy(&fingerprint->aps[fingerprint->aps_count], ap, sizeof(ap));
     fingerprint->aps_count++;
 }
-

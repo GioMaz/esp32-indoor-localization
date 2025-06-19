@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+#include "common.h"
+
 typedef struct {
     uint8_t mac[6];
     int8_t rssi;
@@ -22,4 +24,4 @@ typedef struct {
     uint32_t data_count;
 } Dataset;
 
-void dataset_append(Dataset *dataset, Fingerprint *fingerprint);
+void dataset_insert_ap(Dataset *dataset, AccessPoint *ap, Pos position);
