@@ -1,5 +1,5 @@
 #include "scan.h"
-#include "common.h"
+#include "config.h"
 #include "gpio.h"
 
 #include <assert.h>
@@ -14,33 +14,48 @@
 StaticTask_t ap_scan_tcb;
 StackType_t ap_scan_stack[AP_SCAN_STACK_SIZE];
 
+Pos dir_to_offset[] = {
+    [LEFT] = {-1, 0},
+    [RIGHT] = {1, 0},
+    [UP] = {0, 1},
+    [DOWN] = {0, -1},
+};
+
 void ap_scan_code(void *params)
 {
     // Destruct params
     ScanParams *scan_params = (ScanParams *)params;
-    QueueHandle_t queue = scan_params->queue;
+    QueueHandle_t scan_queue = scan_params->scan_queue;
     AccessPoint *total_aps = scan_params->total_aps;
     Pos *total_labels = scan_params->total_labels;
 
     // Setup variables
     Direction direction;
-    Pos new_position = {0, 0};
+    Pos position = {0, 0};
     uint32_t count = 0;
 
     for (;;) {
-        if (xQueueReceive(queue, &direction, portMAX_DELAY)) {
-            AccessPoint aps[MAX_DATAPOINTS];
-            uint16_t ap_count = ap_scan(aps);
-            printf("DONE %d\n", ap_count);
+        if (xQueueReceive(scan_queue, &direction, portMAX_DELAY)) {
+            // Apply direction
+            position.x += dir_to_offset[direction].x;
+            position.y += dir_to_offset[direction].y;
 
+            // Create temporary datapoints
+            AccessPoint aps[APS_SIZE];
+
+            // Scan datapoints
+            uint16_t ap_count = ap_scan(aps);
+
+            // Copy scanned datapoints to dataset
             int i = 0;
             while (i < ap_count && count < MAX_DATAPOINTS) {
                 memcpy(&total_aps[count], &aps[i], sizeof(total_aps[count]));
-                total_labels[count] = new_position;
+                total_labels[count] = position;
                 i++;
                 count++;
             }
 
+            // Block if max datapoints reached
             if (count == MAX_DATAPOINTS) {
                 printf("ERROR: Max number of datapoints reached\n");
                 while (1)

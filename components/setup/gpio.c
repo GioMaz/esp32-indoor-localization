@@ -16,11 +16,12 @@
 #define BTN3 3
 #define BTN4 21
 
-gpio_num_t btn_pins[NUM_BTNS] = {BTN1, BTN2, BTN3, BTN4};
-
 volatile bool btn_pressed[NUM_BTNS] = {false};
-
+gpio_num_t btn_pins[NUM_BTNS] = {BTN1, BTN2, BTN3, BTN4};
 Direction btn_to_dir[] = {LEFT, DOWN, UP, RIGHT};
+
+StaticTask_t gpio_tcb;
+StackType_t gpio_stack[GPIO_STACK_SIZE];
 
 static void IRAM_ATTR btn_handler(void *arg)
 {
@@ -40,12 +41,11 @@ void setup_gpio()
     }
 }
 
-void btn_task(void *arg)
+void gpio_task_code(void *params)
 {
-    GpioParams *params = (GpioParams *)arg;
-    QueueHandle_t scan_queue = params->scan_queue;
+    GpioParams *gpio_params = (GpioParams *)params;
+    QueueHandle_t scan_queue = gpio_params->scan_queue;
 
-    esp_task_wdt_deinit();
     bool last_state[NUM_BTNS] = {false};
 
     Direction direction;
@@ -54,19 +54,18 @@ void btn_task(void *arg)
         for (int i = 0; i < NUM_BTNS; i++) {
             if (btn_pressed[i]) {
                 direction = btn_to_dir[i];
-
-                printf("btn %d\n", btn_pins[i]);
                 xQueueSend(scan_queue, (void *)&direction, 0);
                 btn_pressed[i] = false;
+                printf("Pressed button %d\n", btn_pins[i]);
             }
         }
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
 
-void app_main()
+TaskHandle_t gpio_task_create(GpioParams *gpio_params)
 {
-    setup_gpio();
-    xTaskCreate(btn_task, "btn_task", 2048, NULL, 10, NULL);
+    TaskHandle_t handle =
+        xTaskCreateStatic(gpio_task_code, "gpio_task", GPIO_STACK_SIZE, gpio_params, tskIDLE_PRIORITY, gpio_stack, &gpio_tcb);
+    return handle;
 }
-

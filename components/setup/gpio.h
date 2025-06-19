@@ -2,6 +2,8 @@
 
 #include "freertos/idf_additions.h"
 
+#define GPIO_STACK_SIZE 4096
+
 typedef enum {
     LEFT,
     RIGHT,
@@ -14,3 +16,4 @@ typedef struct {
 } GpioParams;
 
 void setup_gpio(void);
+TaskHandle_t gpio_task_create(GpioParams *gpio_params);

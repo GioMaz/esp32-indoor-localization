@@ -9,42 +9,46 @@
 #include "freertos/event_groups.h"
 #include "freertos/idf_additions.h"
 
-#include "http_server.h"
+#include "common.h"
+#include "config.h"
 #include "core.h"
+#include "gpio.h"
+#include "http_server.h"
 #include "scan.h"
 #include "setup.h"
-#include "config.h"
-#include "common.h"
 
 #ifdef CONSOLE
 #include "linenoise/linenoise.h"
 #endif
 
-#define CMD_SIZE        16
-#define SSID            "unitn-x"
+#define CMD_SIZE 16
+#define SSID "unitn-x"
 
 void app_main(void)
 {
+    // Setup peripherals
     setup();
 
-    // Setup dataset
+    // Create empty dataset
     AccessPoint total_aps[MAX_DATAPOINTS];
     Pos total_labels[MAX_DATAPOINTS];
 
-    // Setup scan task
+    // Create server task
+    QueueHandle_t server_queue = xQueueCreate(10, sizeof(Pos));
+    ServerWrapper *server = http_server_start(server_queue);
+
+    // Create scan task
     QueueHandle_t scan_queue = xQueueCreate(10, sizeof(Pos));
-    ScanParams scan_params = (ScanParams) {
-        .queue = scan_queue,
+    ScanParams scan_params = (ScanParams){
+        scan_queue,
         total_aps,
         total_labels,
     };
     TaskHandle_t scan = ap_scan_create(&scan_params);
 
-    // Setup server task
-    QueueHandle_t server_queue = xQueueCreate(10, sizeof(Pos));
-    ServerWrapper *server = http_server_start(server_queue);
-
-#ifdef CONSOLE
+    // Create gpio task
+    GpioParams gpio_params = { scan_queue };
+    TaskHandle_t gpio_task = gpio_task_create(&gpio_params);
 
     // Loop
     while (1) {
@@ -87,8 +91,6 @@ void app_main(void)
         //
         // linenoiseFree(line);
     }
-
-#endif
 
     // http_server_stop(server);
     // ap_stop();

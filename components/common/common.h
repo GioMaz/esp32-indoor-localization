@@ -5,8 +5,6 @@
 #define MIN(a, b) a < b ? a : b
 #define MAX(a, b) a > b ? a : b
 
-#define MAX_DATAPOINTS  32
-
 typedef struct {
     int16_t x, y;
 } Pos;

@@ -1,3 +1,5 @@
 #pragma once
 
-#define CONSOLE
+// #define CONSOLE
+
+#define MAX_DATAPOINTS  32

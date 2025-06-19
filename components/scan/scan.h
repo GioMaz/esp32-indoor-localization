@@ -16,9 +16,10 @@ typedef struct {
 } AccessPoint;
 
 typedef struct {
-    QueueHandle_t queue;
+    QueueHandle_t scan_queue;
     AccessPoint *total_aps;
-    Pos *total_labels;
+    Pos         *total_labels;
+    uint32_t    *count;
 } ScanParams;
 
 uint16_t ap_scan(AccessPoint aps[]);
