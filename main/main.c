@@ -32,7 +32,7 @@ void app_main(void)
 
     // Create server task
     QueueHandle_t server_queue = xQueueCreate(10, sizeof(Pos));
-    ServerWrapper *server = http_server_start(server_queue);
+    ServerWrapper *server = http_server_start(server_queue, (const Dataset *)&dataset);
 
     // Create scan task
     QueueHandle_t direction_queue = xQueueCreate(10, sizeof(Pos));

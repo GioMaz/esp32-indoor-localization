@@ -1,4 +1,5 @@
 #include "http_server.h"
+#include "dataset.h"
 #include "esp_http_server.h"
 #include "esp_log.h"
 #include "freertos/idf_additions.h"
@@ -21,7 +22,7 @@ void server_update_task(void *param)
     }
 }
 
-ServerWrapper *http_server_start(QueueHandle_t queue)
+ServerWrapper *http_server_start(QueueHandle_t queue, const Dataset *dataset)
 {
     ESP_LOGI(TAG, "Starting Http Server...");
 
@@ -38,6 +39,7 @@ ServerWrapper *http_server_start(QueueHandle_t queue)
         return NULL;
     }
     server_wrapper->ctx->position = (Pos){.x = 0, .y = 0};
+    server_wrapper->ctx->dataset = dataset;
 
     server_wrapper->task_args = calloc(1, sizeof(update_task_args_t));
     if (!server_wrapper->task_args) {
@@ -50,7 +52,8 @@ ServerWrapper *http_server_start(QueueHandle_t queue)
     server_wrapper->task_args->ctx = server_wrapper->ctx;
     server_wrapper->task_args->queue = queue;
 
-    if (xTaskCreate(server_update_task, "server_update", 2048, server_wrapper->task_args, 5,
+    if (xTaskCreate(server_update_task, "server_update", 2048,
+                    server_wrapper->task_args, 5,
                     &server_wrapper->task_handle) != pdPASS) {
         ESP_LOGE(TAG, "Failed to create task");
         free(server_wrapper->task_args);
@@ -78,8 +81,10 @@ ServerWrapper *http_server_start(QueueHandle_t queue)
                                 .handler = get_position_handler,
                                 .user_ctx = server_wrapper->ctx};
 
-    httpd_uri_t get_static = {
-        .uri = "/*", .method = HTTP_GET, .handler = static_file_handler, .user_ctx = NULL};
+    httpd_uri_t get_static = {.uri = "/*",
+                              .method = HTTP_GET,
+                              .handler = static_file_handler,
+                              .user_ctx = NULL};
 
     httpd_register_uri_handler(server_wrapper->server, &get_position);
     httpd_register_uri_handler(server_wrapper->server, &get_static);

@@ -20,6 +20,15 @@ esp_err_t get_position_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
+esp_err_t get_dataset_handler(httpd_req_t *req) {
+
+    server_context_t *ctx = (server_context_t *)req->user_ctx;
+    if (!ctx) {
+        return ESP_FAIL;
+    }
+
+}
+
 const char *get_content_type(const char *filepath)
 {
     const char *ext = strrchr(filepath, '.');
