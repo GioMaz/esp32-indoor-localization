@@ -11,8 +11,8 @@
 
 #include "gpio.h"
 #include "http_server.h"
-#include "inference.h"
-#include "scan.h"
+#include "state_inference.h"
+#include "state_training.h"
 #include "setup.h"
 #include "storage.h"
 #include "utils.h"
@@ -45,18 +45,13 @@ void app_main(void)
     // Create state queue
     QueueHandle_t state_queue = xQueueCreate(10, 1);
 
+    // Create direction task
+    QueueHandle_t direction_queue = xQueueCreate(10, sizeof(Pos));
+
     // Create server task
     QueueHandle_t position_queue = xQueueCreate(10, sizeof(Pos));
     ServerWrapper *server = http_server_start(position_queue, state_queue,
                                               (const Dataset *)&dataset);
-
-    // Create scan task
-    QueueHandle_t direction_queue = xQueueCreate(10, sizeof(Pos));
-    ScanParams scan_params = (ScanParams){
-        direction_queue,
-        &dataset,
-    };
-    TaskHandle_t scan = ap_scan_create(&scan_params);
 
     // Create gpio task
     GpioParams gpio_params = {direction_queue};

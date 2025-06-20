@@ -4,7 +4,7 @@
 
 #include "freertos/idf_additions.h"
 
-#include "inference.h"
+#include "state_inference.h"
 #include "dataset.h"
 #include "scan.h"
 
