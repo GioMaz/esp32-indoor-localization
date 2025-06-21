@@ -51,13 +51,13 @@ void dataset_print(Dataset *dataset)
                 fingerprint->pos.x, fingerprint->pos.y);
         for (int j = 0; j < fingerprint->aps_count; j++) {
             printf("\t");
-            print_ap(&fingerprint->aps[j]);
+            ap_print(&fingerprint->aps[j]);
         }
         printf("\n");
     }
 }
 
-void print_ap(AccessPoint *ap)
+void ap_print(AccessPoint *ap)
 {
     printf("RSSI: %d, MAC: %x:%x:%x:%x:%x:%x\n", ap->rssi, ap->mac[0],
            ap->mac[1], ap->mac[2], ap->mac[3], ap->mac[4], ap->mac[5]);
