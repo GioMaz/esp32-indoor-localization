@@ -9,5 +9,10 @@ typedef struct {
     uint8_t aps_count;
 } Query;
 
-void handle_inference_state(Dataset *dataset, Pos *pos, QueueHandle_t position_queue);
-void inference(Dataset *dataset, Query *query, Pos *result);
+typedef struct {
+    double dist;
+    Pos pos;
+} DistPos;
+
+void handle_inference_state(const Dataset *dataset, const Pos *pos, QueueHandle_t position_queue);
+void inference(const Dataset *dataset, const Query *query, Pos *result);

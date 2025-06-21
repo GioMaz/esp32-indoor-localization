@@ -5,4 +5,4 @@
 #include "utils.h"
 #include "dataset.h"
 
-uint16_t ap_scan(AccessPoint aps[]);
+uint8_t ap_scan(AccessPoint aps[]);

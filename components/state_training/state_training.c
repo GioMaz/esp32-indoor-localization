@@ -35,12 +35,13 @@ void handle_training_state(Dataset *dataset, Pos *pos, QueueHandle_t direction_q
             AccessPoint aps[APS_SIZE];
 
             // Scan datapoints
-            uint16_t ap_count = ap_scan(aps);
+            uint8_t ap_count = ap_scan(aps);
 
             // Copy scanned datapoints to dataset
             for (int i = 0; i < ap_count; i++) {
                 dataset_insert_ap(dataset, &aps[i], *pos);
             }
+            // dataset_print(dataset);
         }
 
         if (dataset->data_count == DATASET_SIZE) {

@@ -27,4 +27,5 @@ typedef struct {
 
 void dataset_init(Dataset *dataset);
 void dataset_insert_ap(Dataset *dataset, AccessPoint *ap, Pos pos);
+void dataset_print(Dataset *dataset);
 void print_ap(AccessPoint *ap);

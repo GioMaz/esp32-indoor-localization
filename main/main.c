@@ -58,7 +58,7 @@ void app_main(void)
     TaskHandle_t gpio_task = gpio_task_create(&gpio_params);
 
     // Setup training/inference data
-    State state = STATE_TRAINING;
+    State state = STATE_INFERENCE;
     Pos pos = {0, 0};
 
     while (1) {
@@ -70,7 +70,7 @@ void app_main(void)
             handle_inference_state(&dataset, &pos, position_queue);
             break;
         }
-        char signal = 0;
+        unsigned char signal = 0;
         if (xQueueReceive(state_queue, &signal, 0) && signal) {
             state =
                 (state == STATE_TRAINING) ? STATE_INFERENCE : STATE_TRAINING;
