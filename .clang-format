@@ -3,5 +3,5 @@ IndentWidth: 4
 UseTab: Never
 BreakBeforeBraces: WebKit
 AllowShortFunctionsOnASingleLine: Empty
-ColumnLimit: 80
+ColumnLimit: 90
 SortIncludes: true

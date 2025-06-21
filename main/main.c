@@ -17,11 +17,6 @@
 #include "storage.h"
 #include "utils.h"
 
-#ifdef CONSOLE
-#include "linenoise/linenoise.h"
-#define CMD_SIZE 16
-#endif
-
 typedef enum {
     STATE_TRAINING,
     STATE_INFERENCE,

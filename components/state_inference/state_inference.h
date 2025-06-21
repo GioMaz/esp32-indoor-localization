@@ -1,7 +1,7 @@
 #pragma once
 
-#include "utils.h"
 #include "dataset.h"
+#include "utils.h"
 #include <stdint.h>
 
 typedef struct {
@@ -14,5 +14,7 @@ typedef struct {
     Pos pos;
 } DistPos;
 
-void handle_inference_state(const Dataset *dataset, const Pos *pos, QueueHandle_t position_queue);
+void handle_inference_state(const Dataset *dataset, const Pos *pos,
+                            QueueHandle_t position_queue);
+
 void inference(const Dataset *dataset, const Query *query, Pos *result);

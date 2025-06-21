@@ -1,8 +1,8 @@
 #include "state_training.h"
-#include "scan.h"
 #include "config.h"
 #include "dataset.h"
 #include "gpio.h"
+#include "scan.h"
 
 #include <assert.h>
 #include <stdio.h>

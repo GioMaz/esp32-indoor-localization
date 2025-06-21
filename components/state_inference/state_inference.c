@@ -1,14 +1,16 @@
-#include <math.h>
 #include <float.h>
+#include <math.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "freertos/idf_additions.h"
 
-#include "state_inference.h"
 #include "dataset.h"
 #include "scan.h"
+#include "state_inference.h"
 
-void handle_inference_state(const Dataset *dataset, const Pos *pos, QueueHandle_t position_queue)
+void handle_inference_state(const Dataset *dataset, const Pos *pos,
+                            QueueHandle_t position_queue)
 {
     Query query;
     query.aps_count = ap_scan(query.aps);
@@ -28,8 +30,10 @@ int cmp(const void *arg_1, const void *arg_2)
 {
     const double dist_1 = ((const DistPos *)arg_1)->dist;
     const double dist_2 = ((const DistPos *)arg_2)->dist;
-    if (dist_1 < dist_2) return -1;
-    if (dist_1 > dist_2) return 1;
+    if (dist_1 < dist_2)
+        return -1;
+    if (dist_1 > dist_2)
+        return 1;
     return 0;
 }
 
@@ -63,8 +67,7 @@ void inference(const Dataset *dataset, const Query *query, Pos *result)
     qsort(dps, dataset->data_count, sizeof(dps[0]), cmp);
 
     for (int i = 0; i < dataset->data_count; i++) {
-        printf("POS: (%d, %d), DIST: %f\n",
-                dps[i].pos.x, dps[i].pos.y, dps[i].dist);
+        printf("POS: (%d, %d), DIST: %f\n", dps[i].pos.x, dps[i].pos.y, dps[i].dist);
     }
 
     // Take the mean of the k nearest pos
@@ -76,5 +79,5 @@ void inference(const Dataset *dataset, const Query *query, Pos *result)
     }
     result->x /= k;
     result->y /= k;
-    printf("INFERENCE RESULT (%d, %d)\n", result->x, result->y);
+    printf("INFERENCE RESULT: (%d, %d)\n", result->x, result->y);
 }

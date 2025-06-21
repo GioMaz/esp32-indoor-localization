@@ -18,24 +18,31 @@ uint8_t ap_scan(AccessPoint aps[])
     wifi_ap_record_t ap_info[APS_SIZE];
     memset(ap_info, 0, sizeof(ap_info));
 
-    esp_wifi_scan_start(NULL, true);
+    static const wifi_scan_config_t scan_config = {
+        .ssid = (unsigned char *)SSID,
+        .bssid = NULL,
+        .channel = 0,
+        .show_hidden = false,
+        .scan_type = WIFI_SCAN_TYPE_ACTIVE,
+        .scan_time.active = {
+            .min = 20,
+            .max = 100,
+        },
+    };
 
-    // ESP_ERROR_CHECK(esp_wifi_scan_get_ap_num(&ap_count));
+    esp_wifi_scan_start(&scan_config, true);
+
     printf("Max scanned APs = %u\n", ap_count);
     ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&ap_count, ap_info));
     printf("Scanned APs = %u\n", ap_count);
 
-    uint8_t j = 0;
     for (int i = 0; i < ap_count; i++) {
-        if (strcmp((const char *)ap_info[i].ssid, SSID) == 0) {
-            memcpy(&aps[j].mac, &ap_info[i].bssid, sizeof(aps[j].mac));
-            aps[j].rssi = ap_info[i].rssi;
-            print_ap(&aps[j]);
-            j++;
-        }
+        memcpy(&aps[i].mac, &ap_info[i].bssid, sizeof(aps[i].mac));
+        aps[i].rssi = ap_info[i].rssi;
+        print_ap(&aps[i]);
     }
 
     esp_wifi_scan_stop();
 
-    return j;
+    return ap_count;
 }
