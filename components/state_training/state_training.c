@@ -2,7 +2,7 @@
 #include "config.h"
 #include "dataset.h"
 #include "gpio.h"
-#include "scan.h"
+#include "ap_scan.h"
 
 #include <assert.h>
 #include <stdio.h>

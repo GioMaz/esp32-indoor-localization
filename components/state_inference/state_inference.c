@@ -6,18 +6,19 @@
 #include "freertos/idf_additions.h"
 
 #include "dataset.h"
-#include "scan.h"
+#include "ap_scan.h"
 #include "state_inference.h"
 
-void handle_inference_state(const Dataset *dataset, const Pos *pos,
+void handle_inference_state(const Dataset *dataset,
                             QueueHandle_t position_queue)
 {
     Query query;
     query.aps_count = ap_scan(query.aps);
 
-    inference(dataset, &query, pos);
+    Pos pos;
+    inference(dataset, &query, &pos);
 
-    xQueueSend(position_queue, (void *)pos, 0);
+    xQueueSend(position_queue, (void *)&pos, 0);
 }
 
 int16_t loss(int8_t rssi_1, int8_t rssi_2)
@@ -43,7 +44,7 @@ void inference(const Dataset *dataset, const Query *query, Pos *result)
 
     // Cycle through every fingerprint
     for (int i = 0; i < dataset->data_count; i++) {
-        Fingerprint *fingerprint = &dataset->data[i];
+        const Fingerprint *fingerprint = &dataset->data[i];
         dps[i].pos = fingerprint->pos;
         int dist_count = 0;
 
@@ -51,8 +52,8 @@ void inference(const Dataset *dataset, const Query *query, Pos *result)
         for (int j = 0; j < dataset->data[i].aps_count; j++) {
             // Cycle through every AP of the query
             for (int k = 0; k < query->aps_count; k++) {
-                AccessPoint *ap_fingerprint = &fingerprint->aps[j];
-                AccessPoint *ap_query = &query->aps[k];
+                const AccessPoint *ap_fingerprint = &fingerprint->aps[j];
+                const AccessPoint *ap_query = &query->aps[k];
                 if (!memcmp(ap_fingerprint->mac, ap_query->mac, sizeof(ap_query->mac))) {
                     dps[i].dist += loss(ap_fingerprint->rssi, ap_query->rssi);
                     dist_count += 1;
@@ -71,13 +72,15 @@ void inference(const Dataset *dataset, const Query *query, Pos *result)
     }
 
     // Take the mean of the k nearest pos
-    int k = sqrt(dataset->data_count);
     *result = (Pos){0, 0};
-    for (int i = 0; i < k; i++) {
-        result->x += dps[i].pos.x;
-        result->y += dps[i].pos.y;
+    int k = sqrt(dataset->data_count);
+    if (k > 0) {
+        for (int i = 0; i < k; i++) {
+            result->x += dps[i].pos.x;
+            result->y += dps[i].pos.y;
+        }
+        result->x /= k;
+        result->y /= k;
     }
-    result->x /= k;
-    result->y /= k;
     printf("INFERENCE RESULT: (%d, %d)\n", result->x, result->y);
 }

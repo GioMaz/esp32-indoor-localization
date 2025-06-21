@@ -1,4 +1,4 @@
-#include "scan.h"
+#include "ap_scan.h"
 #include "config.h"
 #include "dataset.h"
 #include "gpio.h"
@@ -32,9 +32,7 @@ uint8_t ap_scan(AccessPoint aps[])
 
     esp_wifi_scan_start(&scan_config, true);
 
-    printf("Max scanned APs = %u\n", ap_count);
     ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&ap_count, ap_info));
-    printf("Scanned APs = %u\n", ap_count);
 
     for (int i = 0; i < ap_count; i++) {
         memcpy(&aps[i].mac, &ap_info[i].bssid, sizeof(aps[i].mac));

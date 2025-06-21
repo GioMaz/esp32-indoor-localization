@@ -62,7 +62,7 @@ void app_main(void)
             handle_training_state(&dataset, &pos, direction_queue);
             break;
         case STATE_INFERENCE:
-            handle_inference_state(&dataset, &pos, position_queue);
+            handle_inference_state(&dataset, position_queue);
             break;
         }
         unsigned char signal = 0;
