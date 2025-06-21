@@ -53,17 +53,17 @@ void inference(const Dataset *dataset, const Query *query, Pos *result)
     printf("INFERENCE RESULT: (%d, %d)\n", result->x, result->y);
 }
 
-double fingerprint_dist(Fingerprint *fingerprint, Query *query)
+double fingerprint_dist(const Fingerprint *fingerprint, const Query *query)
 {
     double dist = 0;
     int dist_count = 0;
 
     // Cycle through every AP of the fingerprint
-    for (int j = 0; j < fingerprint->aps_count; j++) {
+    for (int i = 0; i < fingerprint->aps_count; i++) {
         // Cycle through every AP of the query
-        for (int k = 0; k < query->aps_count; k++) {
-            const AccessPoint *ap_fingerprint = &fingerprint->aps[j];
-            const AccessPoint *ap_query = &query->aps[k];
+        for (int j = 0; j < query->aps_count; j++) {
+            const AccessPoint *ap_fingerprint = &fingerprint->aps[i];
+            const AccessPoint *ap_query = &query->aps[j];
             if (!memcmp(ap_fingerprint->mac, ap_query->mac, sizeof(ap_query->mac))) {
                 dist += loss(ap_fingerprint->rssi, ap_query->rssi);
                 dist_count += 1;
