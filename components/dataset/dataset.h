@@ -18,7 +18,7 @@ typedef struct {
     Pos pos;
 } Fingerprint;
 
-#define DATASET_SIZE 64
+#define DATASET_SIZE 80
 
 typedef struct {
     Fingerprint data[DATASET_SIZE];
