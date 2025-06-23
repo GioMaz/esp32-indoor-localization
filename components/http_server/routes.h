@@ -7,3 +7,4 @@ esp_err_t get_position_handler(httpd_req_t *req);
 esp_err_t get_dataset_handler(httpd_req_t *req);
 esp_err_t static_file_handler(httpd_req_t *req);
 esp_err_t post_switch_state_handler(httpd_req_t *req);
+esp_err_t get_state_handler(httpd_req_t *req);

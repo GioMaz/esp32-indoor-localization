@@ -1,17 +1,122 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>esp32-rssi-location-estimator</title>
-    <link rel="stylesheet" href="./style.css">
-    <!--<link rel="icon" href="./favicon.ico" type="image/x-icon">-->
-  </head>
-  <body>
-    <main>
-        <h1>ciao</h1>
-    </main>
-  </body>
-</html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>esp32-rssi-location-estimator</title>
+  <style>
+    .contenitore-mappa {
+      display: grid;
+      /* 1 colonna per etichetta y + colonne mappa */
+      grid-template-columns: 30px repeat(auto-fit, 30px);
+      /* 1 riga per etichetta x + righe mappa */
+      grid-template-rows: 30px repeat(auto-fit, 30px);
+      gap: 2px;
+      margin-top: 20px;
+    }
 
+    .cella {
+      width: 30px;
+      height: 30px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    .accessibile {
+      background-color: #3b82f6;
+    }
+
+    .non-accessibile {
+      background-color: #fff;
+    }
+
+    .etichetta {
+      font-size: 12px;
+      color: #555;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Mappa da file con coordinate</h1>
+    <button onclick="switchMode()">Switch modalità</button>
+
+    <div id="contenitore" class="contenitore-mappa"></div>
+  </main>
+
+  <script>
+    async function switchMode() {
+      try {
+        const response = await fetch('/api/switchState', { method: 'POST' });
+        if (response.ok) {
+          alert('Modalità cambiata con successo!');
+        } else {
+          alert('Errore durante lo switch di modalità');
+        }
+      } catch (error) {
+        alert('Errore di rete: ' + error);
+      }
+    }
+
+    async function caricaMappa() {
+      try {
+        const response = await fetch('mappa.txt');
+        if (!response.ok) throw new Error('File mappa non trovato');
+
+        const testo = await response.text();
+        const righe = testo.trim().split('\n');
+
+        const righeCount = righe.length;
+        const colonneCount = righe[0].length;
+
+        const contenitore = document.getElementById('contenitore');
+
+        // Aggiorna il numero di colonne e righe della griglia (1 + count)
+        contenitore.style.gridTemplateColumns = `30px repeat(${colonneCount}, 30px)`;
+        contenitore.style.gridTemplateRows = `30px repeat(${righeCount}, 30px)`;
+
+        contenitore.innerHTML = ''; // reset contenuto
+
+        // Riga 0, colonna 0 vuota (angolo)
+        contenitore.appendChild(document.createElement('div'));
+
+        // Etichette coordinate x (colonne) in alto (riga 0)
+        for (let x = 0; x < colonneCount; x++) {
+          const etichettaX = document.createElement('div');
+          etichettaX.classList.add('etichetta');
+          etichettaX.textContent = x;
+          contenitore.appendChild(etichettaX);
+        }
+
+        // Ora ciclo righe dal basso verso l'alto (y: righeCount-1 ... 0)
+        for (let y = righeCount - 1; y >= 0; y--) {
+          const etichettaY = document.createElement('div');
+          etichettaY.classList.add('etichetta');
+          etichettaY.textContent = y;
+          contenitore.appendChild(etichettaY);
+
+          const riga = righe[righeCount - 1 - y].trim();
+
+          for (let x = 0; x < colonneCount; x++) {
+            const char = riga[x];
+            const div = document.createElement('div');
+            div.classList.add('cella');
+            if (char === 'X') div.classList.add('accessibile');
+            else div.classList.add('non-accessibile');
+            contenitore.appendChild(div);
+          }
+        }
+      } catch (err) {
+        alert('Errore caricamento mappa: ' + err.message);
+      }
+    }
+
+    // Carica la mappa all'avvio
+    caricaMappa();
+  </script>
+</body>
+</html>

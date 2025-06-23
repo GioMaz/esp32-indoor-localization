@@ -17,10 +17,6 @@
 #include "storage.h"
 #include "utils.h"
 
-typedef enum {
-    STATE_TRAINING,
-    STATE_INFERENCE,
-} State;
 
 void app_main(void)
 {
@@ -41,11 +37,12 @@ void app_main(void)
     QueueHandle_t state_queue = xQueueCreate(10, 1);
 
     // Create direction task
-    QueueHandle_t direction_queue = xQueueCreate(10, sizeof(Pos));
+    QueueHandle_t direction_queue = xQueueCreate(10, sizeof(Direction));
 
     // Create server task
     QueueHandle_t position_queue = xQueueCreate(10, sizeof(Pos));
-    ServerWrapper *server = http_server_start(position_queue, state_queue,
+    ServerWrapper *server = http_server_start(position_queue, 
+                                              state_queue,
                                               (const Dataset *)&dataset);
 
     // Create gpio task
@@ -53,11 +50,10 @@ void app_main(void)
     TaskHandle_t gpio_task = gpio_task_create(&gpio_params);
 
     // Setup training/inference data
-    State state = STATE_INFERENCE;
     Pos pos = {0, 0};
 
     while (1) {
-        switch (state) {
+        switch (server->ctx->current_state) {
         case STATE_TRAINING:
             handle_training_state(&dataset, &pos, direction_queue);
             break;
@@ -65,11 +61,17 @@ void app_main(void)
             handle_inference_state(&dataset, position_queue);
             break;
         }
+
         unsigned char signal = 0;
         if (xQueueReceive(state_queue, &signal, 0) && signal) {
-            state =
-                (state == STATE_TRAINING) ? STATE_INFERENCE : STATE_TRAINING;
-            printf("CHANGE STATE\n");
-        };
+            // change directly in context
+            if (server->ctx->current_state == STATE_TRAINING) {
+                server->ctx->current_state = STATE_INFERENCE;
+            } else {
+                server->ctx->current_state = STATE_TRAINING;
+            }
+            printf("CHANGE STATE to %d\n", server->ctx->current_state);
+        }
     }
+
 }

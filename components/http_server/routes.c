@@ -131,3 +131,21 @@ esp_err_t static_file_handler(httpd_req_t *req)
     httpd_resp_send_chunk(req, NULL, 0); // transmission end
     return ESP_OK;
 }
+
+esp_err_t get_state_handler(httpd_req_t *req)
+{
+    server_context_t *ctx = (server_context_t *)req->user_ctx;
+    if (!ctx) {
+        return ESP_FAIL;
+    }
+
+    const char *state_str = (ctx->current_state == STATE_TRAINING) ? "training" : "inference";
+
+    char json_response[32];
+    snprintf(json_response, sizeof(json_response), "{\"state\":\"%s\"}", state_str);
+
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_send(req, json_response, HTTPD_RESP_USE_STRLEN);
+
+    return ESP_OK;
+}
