@@ -1,11 +1,11 @@
 CC=gcc
 COMPONENTS_DIR=../components
 
-run: main
-	./main
+run: test
+	./test
 
-main: main.c
-	$(CC) -I $(COMPONENTS_DIR)/utils -L $(COMPONENTS_DIR)/dataset -o main main.c $(COMPONENTS_DIR)/dataset/dataset.c
+test: test.c
+	$(CC) -I $(COMPONENTS_DIR)/utils -L $(COMPONENTS_DIR)/dataset -o test test.c $(COMPONENTS_DIR)/dataset/dataset.c
 
 clean:
-	rm main
+	rm test
