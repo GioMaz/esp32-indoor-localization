@@ -5,9 +5,12 @@
 
 #include "utils.h"
 
+typedef uint8_t Mac[6];
+typedef int8_t Rssi;
+
 typedef struct {
-    uint8_t mac[6];
-    int8_t rssi;
+    Mac mac;
+    Rssi rssi;
 } AccessPoint;
 
 #define APS_SIZE 8

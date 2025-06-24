@@ -37,29 +37,36 @@ void app_main(void)
         printf("DATASET EMPTY\n");
     }
 
+    // Create direction queue
+    QueueHandle_t direction_queue = xQueueCreate(10, sizeof(Pos));
+
+    // Create scan queue
+    QueueHandle_t scan_queue = xQueueCreate(10, 1);
+
     // Create state queue
     QueueHandle_t state_queue = xQueueCreate(10, 1);
 
-    // Create direction task
-    QueueHandle_t direction_queue = xQueueCreate(10, sizeof(Pos));
+    // Create gpio task
+    GpioParams gpio_params = {
+        direction_queue,
+        state_queue,
+        scan_queue,
+    };
+    TaskHandle_t gpio_task = gpio_task_create(&gpio_params);
 
     // Create server task
     QueueHandle_t position_queue = xQueueCreate(10, sizeof(Pos));
     ServerWrapper *server = http_server_start(position_queue, state_queue,
                                               (const Dataset *)&dataset);
 
-    // Create gpio task
-    GpioParams gpio_params = {direction_queue};
-    TaskHandle_t gpio_task = gpio_task_create(&gpio_params);
-
     // Setup training/inference data
-    State state = STATE_INFERENCE;
+    State state = STATE_TRAINING;
     Pos pos = {0, 0};
 
     while (1) {
         switch (state) {
         case STATE_TRAINING:
-            handle_training_state(&dataset, &pos, direction_queue);
+            handle_training_state(&dataset, &pos, direction_queue, scan_queue);
             break;
         case STATE_INFERENCE:
             handle_inference_state(&dataset, position_queue);

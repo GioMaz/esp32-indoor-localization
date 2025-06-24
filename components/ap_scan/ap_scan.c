@@ -35,7 +35,7 @@ uint8_t ap_scan(AccessPoint aps[])
     ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&ap_count, ap_info));
 
     for (int i = 0; i < ap_count; i++) {
-        memcpy(&aps[i].mac, &ap_info[i].bssid, sizeof(aps[i].mac));
+        memcpy(&aps[i].mac, &ap_info[i].bssid, sizeof(Mac));
         aps[i].rssi = ap_info[i].rssi;
         ap_print(&aps[i]);
     }

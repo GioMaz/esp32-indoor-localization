@@ -20,32 +20,38 @@ Pos dir_to_offset[] = {
     [DOWN] = {0, -1},
 };
 
-void handle_training_state(Dataset *dataset, Pos *pos, QueueHandle_t direction_queue)
+void handle_training_state(Dataset *dataset, Pos *pos, QueueHandle_t direction_queue, QueueHandle_t scan_queue)
 {
+    // Check for direction change
     Direction direction;
     if (xQueueReceive(direction_queue, &direction, 0)) {
-        // Block if max datapoints reached
-        if (dataset->data_count < DATASET_SIZE) {
-            // Apply direction
-            pos->x += dir_to_offset[direction].x;
-            pos->y += dir_to_offset[direction].y;
-            printf("Scanning position (%d, %d)\n", pos->x, pos->y);
+        pos->x += dir_to_offset[direction].x;
+        pos->y += dir_to_offset[direction].y;
+    }
 
-            // Create temporary datapoints
-            AccessPoint aps[APS_SIZE];
+    // Check for scan command
+    unsigned char signal = 0;
+    if (xQueueReceive(scan_queue, &signal, 0) && signal) {
+        printf("Scanning position (%d, %d)...\n", pos->x, pos->y);
 
-            // Scan datapoints
-            uint8_t ap_count = ap_scan(aps);
+        for (int i = 0; i < 4; i++) {
+            // Block if max datapoints reached
+            if (dataset->data_count < DATASET_SIZE) {
+                // Create temporary datapoints
+                AccessPoint aps[APS_SIZE];
 
-            // Copy scanned datapoints to dataset
-            for (int i = 0; i < ap_count; i++) {
-                dataset_insert_ap(dataset, &aps[i], *pos);
+                // Scan datapoints
+                uint8_t ap_count = ap_scan(aps);
+
+                // Copy scanned datapoints to dataset
+                for (int i = 0; i < ap_count; i++) {
+                    dataset_insert_ap(dataset, &aps[i], *pos);
+                }
             }
-            // dataset_print(dataset);
-        }
 
-        if (dataset->data_count == DATASET_SIZE) {
-            printf("ERROR: Max number of datapoints reached\n");
+            if (dataset->data_count == DATASET_SIZE) {
+                printf("ERROR: Max number of datapoints reached\n");
+            }
         }
     }
 }

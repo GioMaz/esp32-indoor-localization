@@ -35,10 +35,19 @@ void dataset_insert_ap(Dataset *dataset, AccessPoint *ap, Pos pos)
 
     Fingerprint *fingerprint = &dataset->data[idx];
 
-    // Copy AP into fingerprint
-    if (fingerprint->aps_count < APS_SIZE) {
+    // Update rssi if AP is already in fingerprint
+    bool found = false;
+    for (int i = 0; i < fingerprint->aps_count; i++) {
+        if (!memcmp(fingerprint->aps[i].mac, ap->mac, sizeof(Mac))) {
+            fingerprint->aps[i].rssi = (fingerprint->aps[i].rssi / 2) + (ap->rssi / 2);
+            found = true;
+        }
+    }
+
+    // Insert new AP if not found
+    if (!found && fingerprint->aps_count < APS_SIZE) {
         memcpy(&fingerprint->aps[fingerprint->aps_count], ap, sizeof(*ap));
-        fingerprint->aps_count++;
+        fingerprint->aps_count += 1;
         fingerprint->pos = pos;
     }
 }
