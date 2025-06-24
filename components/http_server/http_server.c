@@ -94,6 +94,11 @@ ServerWrapper *http_server_start(QueueHandle_t position_queue,
                                 .handler = post_switch_state_handler,
                                 .user_ctx = server_wrapper->ctx};
 
+    httpd_uri_t get_map = {.uri = "/api/map",
+                                .method = HTTP_GET,
+                                .handler = get_map_handler,
+                                .user_ctx = server_wrapper->ctx};
+
     httpd_uri_t get_static = {.uri = "/*",
                               .method = HTTP_GET,
                               .handler = static_file_handler,
@@ -101,6 +106,7 @@ ServerWrapper *http_server_start(QueueHandle_t position_queue,
 
     httpd_register_uri_handler(server_wrapper->server, &get_position);
     httpd_register_uri_handler(server_wrapper->server, &get_dataset);
+    httpd_register_uri_handler(server_wrapper->server, &get_map);
     httpd_register_uri_handler(server_wrapper->server, &switch_state);
     httpd_register_uri_handler(server_wrapper->server, &get_static);
 

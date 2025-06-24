@@ -4,6 +4,7 @@
 #include "freertos/idf_additions.h"
 #include "http_server.h"
 #include "storage.h"
+#include <stdio.h>
 
 esp_err_t post_switch_state_handler(httpd_req_t *req)
 {
@@ -22,6 +23,35 @@ esp_err_t post_switch_state_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
+esp_err_t get_map_handler(httpd_req_t *req)
+{
+    server_context_t *ctx = (server_context_t *)req->user_ctx;
+    if (!ctx) {
+        return ESP_FAIL;
+    }
+
+    httpd_resp_set_type(req, "application/json");
+
+    char json_response[64];
+    httpd_resp_send_chunk(req, "[", 1);
+
+    for (int i = 0; i < ctx->dataset->data_count; i++) {
+        Pos pos = ctx->dataset->data[i].pos;
+        int len = snprintf(json_response, sizeof(json_response),
+                           "%s{\"x\": %d, \"y\": %d}", (i > 0) ? "," : "", pos.x, pos.y);
+
+        if (httpd_resp_send_chunk(req, json_response, len) != ESP_OK) {
+            httpd_resp_sendstr_chunk(req, NULL);
+            return ESP_FAIL;
+        }
+    }
+
+    httpd_resp_send_chunk(req, "]", 1);
+    httpd_resp_send_chunk(req, NULL, 0); // transmission end
+
+    return ESP_OK;
+}
+
 esp_err_t get_position_handler(httpd_req_t *req)
 {
     server_context_t *ctx = (server_context_t *)req->user_ctx;
@@ -29,12 +59,11 @@ esp_err_t get_position_handler(httpd_req_t *req)
         return ESP_FAIL;
     }
 
-    float x = ctx->position.x;
-    float y = ctx->position.y;
+    int x = ctx->position.x;
+    int y = ctx->position.y;
 
     char json_response[64];
-    snprintf(json_response, sizeof(json_response), "{\"x\": %.2f, \"y\": %.2f}",
-             x, y);
+    snprintf(json_response, sizeof(json_response), "{\"x\": %d, \"y\": %d}", x, y);
 
     httpd_resp_set_type(req, "application/json");
     httpd_resp_send(req, json_response, HTTPD_RESP_USE_STRLEN);

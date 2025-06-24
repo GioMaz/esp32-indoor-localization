@@ -1,17 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>esp32-rssi-location-estimator</title>
-    <link rel="stylesheet" href="./style.css">
-    <!--<link rel="icon" href="./favicon.ico" type="image/x-icon">-->
-  </head>
-  <body>
-    <main>
-        <h1>ciao</h1>
-    </main>
-  </body>
-</html>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
 
+        main {
+            padding: 2px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            width: 100vw;
+        }
+
+        button {
+            width: 100px;
+        }
+
+        .map {
+            display: grid;
+            gap: 2px;
+        }
+
+        .box {
+            background-color: #808080;
+            padding: 4px;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .scanned {
+            background-color: #E0E0E0;
+        }
+
+        .active {
+            background-color: #33cc33 !important;
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <h2>esp32 Indoor Localization</h2>
+        <div>
+            <button>RESET</button>
+            <button>DOWNLOAD</button>
+            <button>UPLOAD</button>
+        </div>
+        <div class="map"></div>
+    </main>
+</body>
+
+</html>
+<script>
+    const base_url = "http://192.168.4.1"
+    async function initializeMap() {
+        const map = document.querySelector(".map");
+        const response = await fetch(base_url + "/api/map")
+        const positions = await response.json();
+
+        const [min_x, max_x, min_y, max_y] = positions.reduce(
+            (acc, {x, y}) => {
+                return [
+                    Math.min(acc[0], x), // min_x
+                    Math.max(acc[1], x), // max_x
+                    Math.min(acc[2], y), // min_y
+                    Math.max(acc[3], y)  // max_y
+                ];
+            },
+            [Infinity, -Infinity, Infinity, -Infinity] // initial values
+        );
+
+        const columns = max_x - min_x + 1;
+        const rows = max_y - min_y + 1;
+
+        map.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+        map.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+
+        for (let j = max_y; j >= min_y; j--) {
+            for (let i = min_x; i <= max_x; i++) {
+                const pos_id = `(${i},${j})`;
+                const node = document.createElement("div");
+                const text = document.createTextNode(pos_id);
+                node.id = pos_id;
+                node.appendChild(text);
+                node.classList.add("box");
+                map.appendChild(node);
+            }
+        }
+
+        positions.forEach((pos) => {
+            const pos_id = `(${pos.x},${pos.y})`;
+            const node = document.getElementById(pos_id);
+            if (node) {
+                node.classList.add("scanned");
+            }
+        });
+    }
+
+    initializeMap();
+
+    setInterval(async () => {
+        const {x, y} = await fetch(base_url + "/api/position").then(response => response.json())
+        const id = `(${x},${y})`
+        const old = document.querySelector(".active")
+
+        if (old) {
+            old.classList.remove("active")
+        }
+
+        const new_active = document.getElementById(id)
+        new_active.classList.add("active")
+    }, 1000);
+</script>
