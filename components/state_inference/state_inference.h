@@ -19,7 +19,7 @@ typedef struct {
 void handle_inference_state(const Dataset *dataset, Pos *previous,
                             QueueHandle_t position_queue);
 
-void inference(const Dataset *dataset, const Query *query, Pos *result);
+void inference(const Dataset *dataset, const Query *query, Pos *previous, Pos *result);
 
 double fingerprint_dist(const Fingerprint *fingerprint, const Query *query);
 void append_macs(Mac macs[], int *macs_count, const AccessPoint aps[], int aps_count);
