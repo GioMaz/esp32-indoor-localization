@@ -39,7 +39,7 @@ ServerWrapper *http_server_start(QueueHandle_t position_queue, QueueHandle_t sta
         free(server_wrapper);
         return NULL;
     }
-    server_wrapper->ctx->position = (Pos){.x = 0, .y = 0};
+    server_wrapper->ctx->position = (Pos){.x = 0.0, .y = 0.0};
     server_wrapper->ctx->dataset = dataset;
     server_wrapper->ctx->state_queue = state_queue;
 
