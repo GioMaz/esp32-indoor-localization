@@ -61,6 +61,25 @@ void inference(const Dataset *dataset, const Query *query, Pos *result)
     printf("ALGO RESULT: (%f, %f)\n", result->x, result->y);
 }
 
+double fingerprint_dist(const Fingerprint *fingerprint, const Query *query)
+{
+    Mac macs[2 * APS_SIZE];
+    int macs_count = 0;
+
+    append_macs(macs, &macs_count, fingerprint->aps, fingerprint->aps_count);
+    append_macs(macs, &macs_count, query->aps, query->aps_count);
+
+    int dist = 0;
+    for (int i = 0; i < macs_count; i++) {
+        int rssi_1 = get_rssi(macs[i], fingerprint->aps, fingerprint->aps_count);
+        int rssi_2 = get_rssi(macs[i], query->aps, query->aps_count);
+        int dist_i = rssi_1 - rssi_2;
+        dist += dist_i * dist_i;
+    }
+
+    return dist;
+}
+
 void append_macs(Mac macs[], int *macs_count, const AccessPoint aps[], int aps_count)
 {
     for (int i = 0; i < aps_count; i++) {
@@ -88,31 +107,6 @@ int get_rssi(const Mac mac, const AccessPoint aps[], int aps_count)
         }
     }
     return rssi;
-}
-
-double fingerprint_dist(const Fingerprint *fingerprint, const Query *query)
-{
-    Mac macs[2 * APS_SIZE];
-    int macs_count = 0;
-
-    append_macs(macs, &macs_count, fingerprint->aps, fingerprint->aps_count);
-    append_macs(macs, &macs_count, query->aps, query->aps_count);
-
-    int dist = 0;
-    for (int i = 0; i < macs_count; i++) {
-        int rssi_1 = get_rssi(macs[i], fingerprint->aps, fingerprint->aps_count);
-        int rssi_2 = get_rssi(macs[i], query->aps, query->aps_count);
-        int dist_i = rssi_1 - rssi_2;
-        dist += dist_i * dist_i;
-    }
-
-    return dist;
-}
-
-int16_t loss(int8_t rssi_1, int8_t rssi_2)
-{
-    int16_t diff = rssi_1 - rssi_2;
-    return abs(diff);
 }
 
 int cmp(const void *arg_1, const void *arg_2)

@@ -22,5 +22,6 @@ void handle_inference_state(const Dataset *dataset, Pos *previous,
 void inference(const Dataset *dataset, const Query *query, Pos *result);
 
 double fingerprint_dist(const Fingerprint *fingerprint, const Query *query);
-int16_t loss(int8_t rssi_1, int8_t rssi_2);
+void append_macs(Mac macs[], int *macs_count, const AccessPoint aps[], int aps_count);
+int get_rssi(const Mac mac, const AccessPoint aps[], int aps_count);
 int cmp(const void *arg_1, const void *arg_2);
