@@ -81,6 +81,17 @@ void append_macs(Mac macs[], int *macs_count, const AccessPoint aps[], int aps_c
     }
 }
 
+int get_rssi(const Mac mac, const AccessPoint aps[], int aps_count)
+{
+    int rssi = 0;
+    for (int i = 0; i < aps_count; i++) {
+        if (!memcmp(aps[i].mac, mac, sizeof(Mac))) {
+            rssi = aps[i].rssi;
+        }
+    }
+    return rssi;
+}
+
 double fingerprint_dist(const Fingerprint *fingerprint, const Query *query)
 {
     Mac macs[2 * APS_SIZE];
@@ -91,52 +102,14 @@ double fingerprint_dist(const Fingerprint *fingerprint, const Query *query)
 
     int dist = 0;
     for (int i = 0; i < macs_count; i++) {
-        int rssi_1 = 0;
-        for (int j = 0; j < fingerprint->aps_count; j++) {
-            if (!memcmp(fingerprint->aps[j].mac, macs[i], sizeof(Mac))) {
-                rssi_1 = fingerprint->aps[j].rssi;
-            }
-        }
-        int rssi_2 = 0;
-        for (int j = 0; j < query->aps_count; j++) {
-            if (!memcmp(query->aps[j].mac, macs[i], sizeof(Mac))) {
-                rssi_2 = query->aps[j].rssi;
-            }
-        }
+        int rssi_1 = get_rssi(macs[i], fingerprint->aps, fingerprint->aps_count);
+        int rssi_2 = get_rssi(macs[i], query->aps, query->aps_count);
         int dist_i = rssi_1 - rssi_2;
         dist += dist_i * dist_i;
     }
 
     return dist;
 }
-
-//
-// double fingerprint_dist(const Fingerprint *fingerprint, const Query *query)
-// {
-//     double dist = 0;
-//     int dist_count = 0;
-//
-//     // Cycle through every AP of the fingerprint
-//     for (int i = 0; i < fingerprint->aps_count; i++) {
-//         // Cycle through every AP of the query
-//         for (int j = 0; j < query->aps_count; j++) {
-//             const AccessPoint *ap_fingerprint = &fingerprint->aps[i];
-//             const AccessPoint *ap_query = &query->aps[j];
-//             if (!memcmp(ap_fingerprint->mac, ap_query->mac, sizeof(ap_query->mac))) {
-//                 dist += loss(ap_fingerprint->rssi, ap_query->rssi);
-//                 dist_count += 1;
-//             }
-//         }
-//     }
-//
-//     if (dist_count == 0) {
-//         dist = DBL_MAX;
-//     } else {
-//         dist /= exp(dist_count);
-//     }
-//
-//     return dist;
-// }
 
 int16_t loss(int8_t rssi_1, int8_t rssi_2)
 {
