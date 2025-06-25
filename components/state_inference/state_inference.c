@@ -29,7 +29,7 @@ void handle_inference_state(const Dataset *dataset, Pos *previous,
     previous->x = pos.x;
     previous->y = pos.y;
 
-    printf("INFERENCE RESULT: (%f, %f)\n", pos.x, pos.y);
+    printf("INFERENCE RESULT: (%3.1f, %3.1f)\n", pos.x, pos.y);
     xQueueSend(position_queue, (void *)&pos, 0);
 }
 
@@ -48,7 +48,7 @@ void inference(const Dataset *dataset, const Query *query, Pos *result)
     qsort(dps, dataset->data_count, sizeof(dps[0]), cmp);
 
     for (int i = 0; i < dataset->data_count; i++) {
-        printf("POS: (%f, %f), DIST: %f\n", dps[i].pos.x, dps[i].pos.y, dps[i].dist);
+        printf("POS: (%3.1f, %3.1f), DIST: %3.1f\n", dps[i].pos.x, dps[i].pos.y, dps[i].dist);
     }
 
     // Take the closest point
@@ -58,7 +58,7 @@ void inference(const Dataset *dataset, const Query *query, Pos *result)
         *result = (Pos){0.0, 0.0};
     }
 
-    printf("ALGO RESULT: (%f, %f)\n", result->x, result->y);
+    printf("ALGO RESULT: (%3.1f, %3.1f)\n", result->x, result->y);
 }
 
 double fingerprint_dist(const Fingerprint *fingerprint, const Query *query)

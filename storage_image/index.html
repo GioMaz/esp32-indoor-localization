@@ -13,45 +13,63 @@
         }
 
         main {
-            padding: 2px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 2px;
-            width: 100vw;
+            align-items: center; /* centra orizzontalmente */
+            justify-content: center; /* centra verticalmente se vuoi (opzionale) */
+            height: 100vh; /* tutto l'altezza viewport */
+            padding: 10px;
+            box-sizing: border-box;
         }
+
 
         button {
             width: 100px;
         }
 
+        .map-wrapper {
+            width: fit-content;  /* si adatta al contenuto */
+            max-width: 90vw;     /* max larghezza 90% viewport */
+            max-height: 80vh;    /* max altezza 80% viewport */
+            overflow-x: auto;
+            overflow-y: auto;
+            border: 1px solid black;
+            -webkit-overflow-scrolling: touch;
+            margin: auto;  /* centra in orizzontale */
+        }
+
         .map {
-            border: solid 1px;
             display: grid;
-            margin-top: 8px;
+            grid-template-columns: repeat(var(--columns), 48px); /* celle più grandi */
+            grid-template-rows: repeat(var(--rows), 48px);
+            gap: 0;
         }
 
         .box {
-            width: 32px;
-            height: 32px;
-
-            border: solid black 1px;
+            width: 48px;
+            height: 48px;
+            border: 1px solid black;
             display: flex;
             align-items: center;
             justify-content: center;
-
             background-color: #808080;
-            padding: 4px;
             text-align: center;
-            font-size: 12px;
+            font-size: 14px;
+            line-height: 1.1;
+            user-select: none;
+            padding: 0; /* rimuoviamo il padding che decentrava il testo */
         }
 
         .scanned {
             background-color: #E0E0E0;
         }
 
-        .active {
-            background-color: #33cc33 !important;
+        .active-default {
+            background-color: #228B22 !important; /* verde scuro */
+        }
+
+        .active-scanned {
+            background-color: #90EE90 !important; /* verde chiaro */
         }
     </style>
 </head>
@@ -65,57 +83,72 @@
             <button id="downloadBtn">DOWNLOAD</button>
             <button id="uploadBtn">UPLOAD</button>
         </div>
-        <div class="map"></div>
+        <div class="map-wrapper">
+            <div class="map"></div>
+        </div>
     </main>
 </body>
 
 </html>
 <script>
     const base_url = "http://192.168.4.1";
+    let currentState = null;
 
     async function initializeMap() {
         const map = document.querySelector(".map");
+        map.innerHTML = ""; // pulisce la mappa prima di ridisegnarla
+
         const response = await fetch(base_url + "/api/map");
         const positions = await response.json();
+        const padding = 5;
 
-        const [min_x, max_x, min_y, max_y] = positions.reduce(
-            (acc, {x, y}) => {
-                return [
-                    Math.min(acc[0], x), // min_x
-                    Math.max(acc[1], x), // max_x
-                    Math.min(acc[2], y), // min_y
-                    Math.max(acc[3], y)  // max_y
-                ];
-            },
-            [Infinity, -Infinity, Infinity, -Infinity] // initial values
-        );
+        let min_x, max_x, min_y, max_y;
+
+        if (positions.length === 0) {
+            min_x = -padding;
+            max_x = padding;
+            min_y = -padding;
+            max_y = padding;
+        } else {
+            const [raw_min_x, raw_max_x, raw_min_y, raw_max_y] = positions.reduce(
+                (acc, { x, y }) => [
+                    Math.min(acc[0], x),
+                    Math.max(acc[1], x),
+                    Math.min(acc[2], y),
+                    Math.max(acc[3], y)
+                ],
+                [Infinity, -Infinity, Infinity, -Infinity]
+            );
+
+            min_x = raw_min_x - padding;
+            max_x = raw_max_x + padding;
+            min_y = raw_min_y - padding;
+            max_y = raw_max_y + padding;
+        }
 
         const columns = max_x - min_x + 1;
         const rows = max_y - min_y + 1;
 
-        map.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
-        map.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+        map.style.setProperty("--columns", columns);
+        map.style.setProperty("--rows", rows);
 
         for (let j = max_y; j >= min_y; j--) {
             for (let i = min_x; i <= max_x; i++) {
                 const pos_id = `(${i},${j})`;
                 const node = document.createElement("div");
-                const text = document.createTextNode(pos_id);
-                node.id = pos_id;
-                node.appendChild(text);
                 node.classList.add("box");
+                node.id = pos_id;
+                node.textContent = pos_id;
                 map.appendChild(node);
             }
         }
 
-        positions.forEach((pos) => {
-            const pos_id = `(${pos.x},${pos.y})`;
-            const node = document.getElementById(pos_id);
-            if (node) {
-                node.classList.add("scanned");
-            }
+        positions.forEach(({ x, y }) => {
+            const node = document.getElementById(`(${x},${y})`);
+            if (node) node.classList.add("scanned");
         });
     }
+
 
     initializeMap();
 
@@ -128,9 +161,20 @@
         fetch(base_url + "/api/switch-state", { method: "POST" });
     });
 
-    resetBtn.addEventListener("click", () => {
-        fetch(base_url + "/api/reset", { method: "POST" });
+    resetBtn.addEventListener("click", async () => {
+        try {
+            const response = await fetch(base_url + "/api/reset", { method: "POST" });
+            if (!response.ok) throw new Error("Reset fallito");
+
+            // Attendi 500 ms prima di ricaricare la mappa
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            await initializeMap();
+        } catch (error) {
+            console.error("Errore durante il reset:", error);
+        }
     });
+
 
     downloadBtn.addEventListener("click", () => {
         const link = document.createElement("a");
@@ -144,20 +188,34 @@
         try {
             const {x, y} = await fetch(base_url + "/api/position").then(r => r.json());
             const id = `(${x},${y})`;
-            const old = document.querySelector(".active");
-            if (old) old.classList.remove("active");
+            document.querySelectorAll(".active-default, .active-scanned").forEach(el => {
+                el.classList.remove("active-default", "active-scanned");
+            });
 
             const new_active = document.getElementById(id);
-            if (new_active) new_active.classList.add("active");
+            if (new_active) {
+                if (new_active.classList.contains("scanned")) {
+                    new_active.classList.add("active-scanned");
+                } else {
+                    new_active.classList.add("active-default");
+                }
+            }
         } catch (e) {
             console.error("Error fetching position:", e);
         }
     }, 1000);
 
+    setInterval(() => {
+        if (currentState === "training") {
+            initializeMap();
+        }
+    }, 20000);
+
     // AGGIORNA STATO (ogni 2 secondi)
     async function updateStateUI() {
         try {
             const { state } = await fetch(base_url + "/api/state").then(r => r.json());
+            currentState = state; 
             switchBtn.textContent = `State: ${state}`;
 
             if (state === "inference") {
