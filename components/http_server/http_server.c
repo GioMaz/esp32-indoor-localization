@@ -42,6 +42,7 @@ ServerWrapper *http_server_start(QueueHandle_t position_queue, QueueHandle_t sta
     server_wrapper->ctx->position = (Pos){.x = 0.0, .y = 0.0};
     server_wrapper->ctx->dataset = dataset;
     server_wrapper->ctx->state_queue = state_queue;
+    server_wrapper->ctx->current_state = STATE_INFERENCE;
 
     server_wrapper->task_args = calloc(1, sizeof(update_task_args_t));
     if (!server_wrapper->task_args) {
@@ -102,6 +103,11 @@ ServerWrapper *http_server_start(QueueHandle_t position_queue, QueueHandle_t sta
                            .handler = get_map_handler,
                            .user_ctx = server_wrapper->ctx};
 
+    httpd_uri_t get_state = {.uri = "/api/state",
+                             .method = HTTP_GET,
+                             .handler = get_state_handler,
+                             .user_ctx = server_wrapper->ctx};
+
     httpd_uri_t get_static = {.uri = "/*",
                               .method = HTTP_GET,
                               .handler = static_file_handler,
@@ -112,6 +118,7 @@ ServerWrapper *http_server_start(QueueHandle_t position_queue, QueueHandle_t sta
     httpd_register_uri_handler(server_wrapper->server, &get_map);
     httpd_register_uri_handler(server_wrapper->server, &switch_state);
     httpd_register_uri_handler(server_wrapper->server, &reset_dataset);
+    httpd_register_uri_handler(server_wrapper->server, &get_state);
     httpd_register_uri_handler(server_wrapper->server, &get_static);
 
     return server_wrapper;

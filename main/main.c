@@ -11,16 +11,11 @@
 
 #include "gpio.h"
 #include "http_server.h"
+#include "setup.h"
 #include "state_inference.h"
 #include "state_training.h"
-#include "setup.h"
 #include "storage.h"
 #include "utils.h"
-
-typedef enum {
-    STATE_TRAINING,
-    STATE_INFERENCE,
-} State;
 
 void app_main(void)
 {
@@ -60,12 +55,11 @@ void app_main(void)
                                               (const Dataset *)&dataset);
 
     // Setup training/inference data
-    State state = STATE_TRAINING;
     Pos pos_inference = {0, 0};
     Pos pos_training = {0, 0};
 
     while (1) {
-        switch (state) {
+        switch (server->ctx->current_state) {
         case STATE_TRAINING:
             handle_training_state(&dataset, &pos_training, position_queue, direction_queue, scan_queue);
             break;
@@ -74,10 +68,16 @@ void app_main(void)
             break;
         }
         unsigned char signal = 0;
-        if (xQueueReceive(state_queue, &signal, 0) && signal) {
-            state =
-                (state == STATE_TRAINING) ? STATE_INFERENCE : STATE_TRAINING;
-            printf("CHANGE STATE\n");
-        };
+        if (xQueueReceive(state_queue, &signal, 0) && signal) { 
+            if (server->ctx->current_state == STATE_TRAINING) {
+                server->ctx->current_state = STATE_INFERENCE;
+            } else {
+                server->ctx->current_state = STATE_TRAINING;
+            }
+            printf("CHANGE STATE to %s\n",
+                   server->ctx->current_state == STATE_TRAINING    ? "STATE_TRAINING"
+                   : server->ctx->current_state == STATE_INFERENCE ? "STATE_INFERENCE"
+                                                                   : "UNKNOWN_STATE");
+        }
     }
 }
