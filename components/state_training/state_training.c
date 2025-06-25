@@ -35,24 +35,22 @@ void handle_training_state(Dataset *dataset, Pos *pos, QueueHandle_t position_qu
     if (xQueueReceive(scan_queue, &signal, 0) && signal) {
         printf("Scanning position (%f, %f)...\n", pos->x, pos->y);
 
-        for (int i = 0; i < 4; i++) {
-            // Block if max datapoints reached
-            if (dataset->data_count < DATASET_SIZE) {
-                // Create temporary datapoints
-                AccessPoint aps[APS_SIZE];
+        int scan_iterations = SCAN_ITERATIONS;
+        while (scan_iterations-- && dataset->data_count < DATASET_SIZE) {
+            // Create temporary datapoints
+            AccessPoint aps[APS_SIZE];
 
-                // Scan datapoints
-                uint8_t ap_count = ap_scan(aps);
+            // Scan datapoints
+            uint8_t ap_count = ap_scan(aps);
 
-                // Copy scanned datapoints to dataset
-                for (int i = 0; i < ap_count; i++) {
-                    dataset_insert_ap(dataset, &aps[i], *pos);
-                }
+            // Copy scanned datapoints to dataset
+            for (int j = 0; j < ap_count; j++) {
+                dataset_insert_ap(dataset, &aps[j], *pos);
             }
+        }
 
-            if (dataset->data_count == DATASET_SIZE) {
-                printf("ERROR: Max number of datapoints reached\n");
-            }
+        if (dataset->data_count == DATASET_SIZE) {
+            printf("ERROR: Max number of datapoints reached\n");
         }
     }
 }
