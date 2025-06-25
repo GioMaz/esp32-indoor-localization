@@ -67,7 +67,7 @@ void app_main(void)
     while (1) {
         switch (state) {
         case STATE_TRAINING:
-            handle_training_state(&dataset, &pos_training, direction_queue, scan_queue);
+            handle_training_state(&dataset, &pos_training, position_queue, direction_queue, scan_queue);
             break;
         case STATE_INFERENCE:
             handle_inference_state(&dataset, &pos_inference, position_queue);
