@@ -15,32 +15,31 @@
         main {
             display: flex;
             flex-direction: column;
-            align-items: center; /* centra orizzontalmente */
-            justify-content: center; /* centra verticalmente se vuoi (opzionale) */
-            height: 100vh; /* tutto l'altezza viewport */
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
             padding: 10px;
             box-sizing: border-box;
         }
-
 
         button {
             width: 100px;
         }
 
         .map-wrapper {
-            width: fit-content;  /* si adatta al contenuto */
-            max-width: 90vw;     /* max larghezza 90% viewport */
-            max-height: 80vh;    /* max altezza 80% viewport */
+            width: fit-content;
+            max-width: 90vw;
+            max-height: 80vh;
             overflow-x: auto;
             overflow-y: auto;
             border: 1px solid black;
             -webkit-overflow-scrolling: touch;
-            margin: auto;  /* centra in orizzontale */
+            margin: auto;
         }
 
         .map {
             display: grid;
-            grid-template-columns: repeat(var(--columns), 48px); /* celle più grandi */
+            grid-template-columns: repeat(var(--columns), 48px);
             grid-template-rows: repeat(var(--rows), 48px);
             gap: 0;
         }
@@ -52,25 +51,26 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: #808080;
+            background-color: #808080;  /* dark gray by default */
             text-align: center;
             font-size: 14px;
             line-height: 1.1;
             user-select: none;
-            padding: 0; /* rimuoviamo il padding che decentrava il testo */
+            padding: 0;
         }
 
-        .scanned {
-            background-color: #E0E0E0;
+        .box.scanned {
+            background-color: #E0E0E0;  /* light gray for points in dataset */
         }
 
         .active-default {
-            background-color: #228B22 !important; /* verde scuro */
+            background-color: #228B22 !important;  /* dark green for default→active */
         }
 
         .active-scanned {
-            background-color: #90EE90 !important; /* verde chiaro */
+            background-color: #90EE90 !important;  /* light green for scanned→active */
         }
+
     </style>
 </head>
 
@@ -96,22 +96,23 @@
 
     async function initializeMap() {
         const map = document.querySelector(".map");
-        map.innerHTML = ""; // pulisce la mappa prima di ridisegnarla
+        const mapWrapper = document.querySelector(".map-wrapper");
+
+        // Save current scroll position
+        const scrollLeft = mapWrapper.scrollLeft;
+        const scrollTop = mapWrapper.scrollTop;
 
         const response = await fetch(base_url + "/api/map");
         const positions = await response.json();
         const padding = 5;
 
-        let min_x, max_x, min_y, max_y;
-
+        // If dataset is empty, use padding centered on 0,0
+        let raw_min_x, raw_max_x, raw_min_y, raw_max_y;
         if (positions.length === 0) {
-            min_x = -padding;
-            max_x = padding;
-            min_y = -padding;
-            max_y = padding;
+            raw_min_x = raw_max_x = raw_min_y = raw_max_y = 0;
         } else {
-            const [raw_min_x, raw_max_x, raw_min_y, raw_max_y] = positions.reduce(
-                (acc, { x, y }) => [
+            [raw_min_x, raw_max_x, raw_min_y, raw_max_y] = positions.reduce(
+                (acc, {x, y}) => [
                     Math.min(acc[0], x),
                     Math.max(acc[1], x),
                     Math.min(acc[2], y),
@@ -119,40 +120,64 @@
                 ],
                 [Infinity, -Infinity, Infinity, -Infinity]
             );
-
-            min_x = raw_min_x - padding;
-            max_x = raw_max_x + padding;
-            min_y = raw_min_y - padding;
-            max_y = raw_max_y + padding;
         }
+
+        const min_x = raw_min_x - padding;
+        const max_x = raw_max_x + padding;
+        const min_y = raw_min_y - padding;
+        const max_y = raw_max_y + padding;
 
         const columns = max_x - min_x + 1;
         const rows = max_y - min_y + 1;
 
-        map.style.setProperty("--columns", columns);
-        map.style.setProperty("--rows", rows);
+        const prevCols = parseInt(map.style.getPropertyValue("--columns") || "0");
+        const prevRows = parseInt(map.style.getPropertyValue("--rows") || "0");
+        const gridChanged = prevCols !== columns || prevRows !== rows;
 
-        for (let j = max_y; j >= min_y; j--) {
-            for (let i = min_x; i <= max_x; i++) {
-                const pos_id = `(${i},${j})`;
-                const node = document.createElement("div");
-                node.classList.add("box");
-                node.id = pos_id;
-                node.textContent = pos_id;
-                map.appendChild(node);
+        if (!gridChanged && map.dataset.built === "true") {
+            // Only update classes, no rebuild
+            document.querySelectorAll(".box").forEach(node => {
+                node.classList.remove("scanned");
+            });
+            positions.forEach(({x, y}) => {
+                const node = document.getElementById(`(${x},${y})`);
+                if (node) node.classList.add("scanned");
+            });
+        } else {
+            // Completely recreate grid
+            map.innerHTML = "";
+            map.style.setProperty("--columns", columns);
+            map.style.setProperty("--rows", rows);
+
+            for (let j = max_y; j >= min_y; j--) {
+                for (let i = min_x; i <= max_x; i++) {
+                    const pos_id = `(${i},${j})`;
+                    const node = document.createElement("div");
+                    node.id = pos_id;
+                    node.classList.add("box");
+                    node.textContent = pos_id;
+                    map.appendChild(node);
+                }
             }
+
+            positions.forEach(({x, y}) => {
+                const node = document.getElementById(`(${x},${y})`);
+                if (node) node.classList.add("scanned");
+            });
+
+            map.dataset.built = "true";
         }
 
-        positions.forEach(({ x, y }) => {
-            const node = document.getElementById(`(${x},${y})`);
-            if (node) node.classList.add("scanned");
-        });
+        // Restore scroll position
+        mapWrapper.scrollLeft = scrollLeft;
+        mapWrapper.scrollTop = scrollTop;
     }
+
 
 
     initializeMap();
 
-    // BOTTONS
+    // BUTTONS
     const switchBtn = document.querySelector("#switchBtn");
     const resetBtn = document.querySelector("#resetBtn");
     const downloadBtn = document.querySelector("#downloadBtn");
@@ -164,14 +189,14 @@
     resetBtn.addEventListener("click", async () => {
         try {
             const response = await fetch(base_url + "/api/reset", { method: "POST" });
-            if (!response.ok) throw new Error("Reset fallito");
+            if (!response.ok) throw new Error("Reset failed");
 
-            // Attendi 500 ms prima di ricaricare la mappa
+            // Wait 500 ms before reloading the map
             await new Promise(resolve => setTimeout(resolve, 500));
 
             await initializeMap();
         } catch (error) {
-            console.error("Errore durante il reset:", error);
+            console.error("Error during reset:", error);
         }
     });
 
@@ -211,7 +236,7 @@
         }
     }, 20000);
 
-    // AGGIORNA STATO (ogni 2 secondi)
+    // UPDATE STATE (every 2 seconds)
     async function updateStateUI() {
         try {
             const { state } = await fetch(base_url + "/api/state").then(r => r.json());
@@ -229,7 +254,7 @@
                 switchBtn.style.color = "white";
             }
         } catch (e) {
-            console.error("Errore fetching stato:", e);
+            console.error("Error fetching state:", e);
             switchBtn.textContent = "State: unknown";
             switchBtn.style.backgroundColor = "gray";
             switchBtn.style.color = "white";
@@ -237,6 +262,6 @@
     }
 
     setInterval(updateStateUI, 2000); // update every 2 seconds
-    updateStateUI(); // aggiorna subito all'avvio
+    updateStateUI(); // update immediately on startup
 
 </script>
