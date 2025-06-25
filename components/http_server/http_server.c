@@ -22,8 +22,7 @@ void server_update_task(void *param)
     }
 }
 
-ServerWrapper *http_server_start(QueueHandle_t position_queue,
-                                 QueueHandle_t state_queue,
+ServerWrapper *http_server_start(QueueHandle_t position_queue, QueueHandle_t state_queue,
                                  const Dataset *dataset)
 {
     ESP_LOGI(TAG, "Starting Http Server...");
@@ -55,9 +54,8 @@ ServerWrapper *http_server_start(QueueHandle_t position_queue,
     server_wrapper->task_args->ctx = server_wrapper->ctx;
     server_wrapper->task_args->position_queue = position_queue;
 
-    if (xTaskCreate(server_update_task, "server_update", 2048,
-                    server_wrapper->task_args, 5,
-                    &server_wrapper->task_handle) != pdPASS) {
+    if (xTaskCreate(server_update_task, "server_update", 2048, server_wrapper->task_args,
+                    5, &server_wrapper->task_handle) != pdPASS) {
         ESP_LOGE(TAG, "Failed to create task");
         free(server_wrapper->task_args);
         free(server_wrapper->ctx);
@@ -89,15 +87,20 @@ ServerWrapper *http_server_start(QueueHandle_t position_queue,
                                .handler = get_dataset_handler,
                                .user_ctx = server_wrapper->ctx};
 
-    httpd_uri_t switch_state = {.uri = "/api/switchState",
+    httpd_uri_t switch_state = {.uri = "/api/switch-state",
                                 .method = HTTP_POST,
                                 .handler = post_switch_state_handler,
                                 .user_ctx = server_wrapper->ctx};
 
-    httpd_uri_t get_map = {.uri = "/api/map",
-                                .method = HTTP_GET,
-                                .handler = get_map_handler,
+    httpd_uri_t reset_dataset = {.uri = "/api/reset",
+                                .method = HTTP_POST,
+                                .handler = post_reset_dataset_handler,
                                 .user_ctx = server_wrapper->ctx};
+
+    httpd_uri_t get_map = {.uri = "/api/map",
+                           .method = HTTP_GET,
+                           .handler = get_map_handler,
+                           .user_ctx = server_wrapper->ctx};
 
     httpd_uri_t get_static = {.uri = "/*",
                               .method = HTTP_GET,
@@ -108,6 +111,7 @@ ServerWrapper *http_server_start(QueueHandle_t position_queue,
     httpd_register_uri_handler(server_wrapper->server, &get_dataset);
     httpd_register_uri_handler(server_wrapper->server, &get_map);
     httpd_register_uri_handler(server_wrapper->server, &switch_state);
+    httpd_register_uri_handler(server_wrapper->server, &reset_dataset);
     httpd_register_uri_handler(server_wrapper->server, &get_static);
 
     return server_wrapper;

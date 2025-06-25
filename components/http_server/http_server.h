@@ -13,7 +13,7 @@
  */
 typedef struct {
     Pos position; /**< Current position of the user */
-    const Dataset *dataset;
+    Dataset *dataset;
     QueueHandle_t state_queue;
 } server_context_t;
 

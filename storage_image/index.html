@@ -28,6 +28,8 @@
         .map {
             display: grid;
             gap: 2px;
+
+            margin-top: 8px;
         }
 
         .box {
@@ -51,9 +53,10 @@
     <main>
         <h2>esp32 Indoor Localization</h2>
         <div>
-            <button>RESET</button>
-            <button>DOWNLOAD</button>
-            <button>UPLOAD</button>
+            <button id="switchBtn">SWITCH STATE</button>
+            <button id="resetBtn">RESET</button>
+            <button id="downloadBtn">DOWNLOAD</button>
+            <button id="uploadBtn">UPLOAD</button>
         </div>
         <div class="map"></div>
     </main>
@@ -107,6 +110,21 @@
     }
 
     initializeMap();
+
+    const switchBtn = document.querySelector("#switchBtn")
+    switchBtn.addEventListener("onclick", () => {
+        fetch(base_url + "/api/switch-state", { method: "POST" })
+    })
+
+    const resetBtn = document.querySelector("#resetBtn")
+    resetBtn.addEventListener("onclick", () => {
+        fetch(base_url + "/api/reset", { method: "POST" })
+    })
+
+    const downloadBtn = document.querySelector("#downloadBtn")
+    downloadBtn.addEventListener("onclick", () => {
+        fetch(base_url + "/api/dataset", { method: "GET" })
+    })
 
     setInterval(async () => {
         const {x, y} = await fetch(base_url + "/api/position").then(response => response.json())

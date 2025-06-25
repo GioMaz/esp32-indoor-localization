@@ -23,6 +23,19 @@ esp_err_t post_switch_state_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
+esp_err_t post_reset_dataset_handler(httpd_req_t *req)
+{
+    server_context_t *ctx = (server_context_t *)req->user_ctx;
+    if (!ctx) {
+        return ESP_FAIL;
+    }
+
+    dataset_init(ctx->dataset);
+
+    httpd_resp_send(req, NULL, 0);
+    return ESP_OK;
+}
+
 esp_err_t get_map_handler(httpd_req_t *req)
 {
     server_context_t *ctx = (server_context_t *)req->user_ctx;
