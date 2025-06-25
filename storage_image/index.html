@@ -71,10 +71,11 @@
 
 </html>
 <script>
-    const base_url = "http://192.168.4.1"
+    const base_url = "http://192.168.4.1";
+
     async function initializeMap() {
         const map = document.querySelector(".map");
-        const response = await fetch(base_url + "/api/map")
+        const response = await fetch(base_url + "/api/map");
         const positions = await response.json();
 
         const [min_x, max_x, min_y, max_y] = positions.reduce(
@@ -118,35 +119,66 @@
 
     initializeMap();
 
-    const switchBtn = document.querySelector("#switchBtn")
+    // BOTTONS
+    const switchBtn = document.querySelector("#switchBtn");
+    const resetBtn = document.querySelector("#resetBtn");
+    const downloadBtn = document.querySelector("#downloadBtn");
+
     switchBtn.addEventListener("click", () => {
-        fetch(base_url + "/api/switch-state", { method: "POST" })
-    })
+        fetch(base_url + "/api/switch-state", { method: "POST" });
+    });
 
-    const resetBtn = document.querySelector("#resetBtn")
     resetBtn.addEventListener("click", () => {
-        fetch(base_url + "/api/reset", { method: "POST" })
-    })
+        fetch(base_url + "/api/reset", { method: "POST" });
+    });
 
-    const downloadBtn = document.querySelector("#downloadBtn")
     downloadBtn.addEventListener("click", () => {
-        const link = document.createElement("a")
-        link.href = base_url + "/api/dataset"
-        link.download = "dataset.bin"
+        const link = document.createElement("a");
+        link.href = base_url + "/api/dataset";
+        link.download = "dataset.bin";
+        link.click();
+    });
 
-        link.click()
-    })
-
+    // UPDATE ACTIVE POSITION
     setInterval(async () => {
-        const {x, y} = await fetch(base_url + "/api/position").then(response => response.json())
-        const id = `(${x},${y})`
-        const old = document.querySelector(".active")
+        try {
+            const {x, y} = await fetch(base_url + "/api/position").then(r => r.json());
+            const id = `(${x},${y})`;
+            const old = document.querySelector(".active");
+            if (old) old.classList.remove("active");
 
-        if (old) {
-            old.classList.remove("active")
+            const new_active = document.getElementById(id);
+            if (new_active) new_active.classList.add("active");
+        } catch (e) {
+            console.error("Error fetching position:", e);
         }
-
-        const new_active = document.getElementById(id)
-        new_active.classList.add("active")
     }, 1000);
+
+    // AGGIORNA STATO (ogni 2 secondi)
+    async function updateStateUI() {
+        try {
+            const { state } = await fetch(base_url + "/api/state").then(r => r.json());
+            switchBtn.textContent = `State: ${state}`;
+
+            if (state === "inference") {
+                switchBtn.style.backgroundColor = "#4CAF50"; // green
+                switchBtn.style.color = "white";
+            } else if (state === "training") {
+                switchBtn.style.backgroundColor = "#2196F3"; // blue
+                switchBtn.style.color = "white";
+            } else {
+                switchBtn.style.backgroundColor = "gray";
+                switchBtn.style.color = "white";
+            }
+        } catch (e) {
+            console.error("Errore fetching stato:", e);
+            switchBtn.textContent = "State: unknown";
+            switchBtn.style.backgroundColor = "gray";
+            switchBtn.style.color = "white";
+        }
+    }
+
+    setInterval(updateStateUI, 2000); // update every 2 seconds
+    updateStateUI(); // aggiorna subito all'avvio
+
 </script>
