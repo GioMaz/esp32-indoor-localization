@@ -112,18 +112,22 @@
     initializeMap();
 
     const switchBtn = document.querySelector("#switchBtn")
-    switchBtn.addEventListener("onclick", () => {
+    switchBtn.addEventListener("click", () => {
         fetch(base_url + "/api/switch-state", { method: "POST" })
     })
 
     const resetBtn = document.querySelector("#resetBtn")
-    resetBtn.addEventListener("onclick", () => {
+    resetBtn.addEventListener("click", () => {
         fetch(base_url + "/api/reset", { method: "POST" })
     })
 
     const downloadBtn = document.querySelector("#downloadBtn")
-    downloadBtn.addEventListener("onclick", () => {
-        fetch(base_url + "/api/dataset", { method: "GET" })
+    downloadBtn.addEventListener("click", () => {
+        const link = document.createElement("a")
+        link.href = base_url + "/api/dataset"
+        link.download = "dataset.bin"
+
+        link.click()
     })
 
     setInterval(async () => {
