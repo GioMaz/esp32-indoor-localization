@@ -56,7 +56,7 @@ void dataset_print(Dataset *dataset)
 {
     for (int i = 0; i < dataset->data_count; i++) {
         Fingerprint *fingerprint = &dataset->data[i];
-        printf("FINGERPRINT: (%d, %d)\n",
+        printf("FINGERPRINT: (%f, %f)\n",
                 fingerprint->pos.x, fingerprint->pos.y);
         for (int j = 0; j < fingerprint->aps_count; j++) {
             printf("\t");

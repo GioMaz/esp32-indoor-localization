@@ -14,10 +14,10 @@
 #include "freertos/idf_additions.h"
 
 Pos dir_to_offset[] = {
-    [LEFT] = {-1, 0},
-    [RIGHT] = {1, 0},
-    [UP] = {0, 1},
-    [DOWN] = {0, -1},
+    [LEFT] = {-1.0, 0.0},
+    [RIGHT] = {1.0, 0.0},
+    [UP] = {0.0, 1.0},
+    [DOWN] = {0.0, -1.0},
 };
 
 void handle_training_state(Dataset *dataset, Pos *pos, QueueHandle_t direction_queue, QueueHandle_t scan_queue)
@@ -32,7 +32,7 @@ void handle_training_state(Dataset *dataset, Pos *pos, QueueHandle_t direction_q
     // Check for scan command
     unsigned char signal = 0;
     if (xQueueReceive(scan_queue, &signal, 0) && signal) {
-        printf("Scanning position (%d, %d)...\n", pos->x, pos->y);
+        printf("Scanning position (%f, %f)...\n", pos->x, pos->y);
 
         for (int i = 0; i < 4; i++) {
             // Block if max datapoints reached

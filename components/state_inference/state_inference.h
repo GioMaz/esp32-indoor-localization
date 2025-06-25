@@ -14,7 +14,8 @@ typedef struct {
     Pos pos;
 } DistPos;
 
-void handle_inference_state(const Dataset *dataset, QueueHandle_t position_queue);
+void handle_inference_state(const Dataset *dataset, Pos *previous,
+                            QueueHandle_t position_queue);
 
 void inference(const Dataset *dataset, const Query *query, Pos *result);
 

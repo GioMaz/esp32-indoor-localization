@@ -61,15 +61,16 @@ void app_main(void)
 
     // Setup training/inference data
     State state = STATE_TRAINING;
-    Pos pos = {0, 0};
+    Pos pos_inference = {0, 0};
+    Pos pos_training = {0, 0};
 
     while (1) {
         switch (state) {
         case STATE_TRAINING:
-            handle_training_state(&dataset, &pos, direction_queue, scan_queue);
+            handle_training_state(&dataset, &pos_training, direction_queue, scan_queue);
             break;
         case STATE_INFERENCE:
-            handle_inference_state(&dataset, position_queue);
+            handle_inference_state(&dataset, &pos_inference, position_queue);
             break;
         }
         unsigned char signal = 0;

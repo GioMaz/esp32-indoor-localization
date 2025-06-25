@@ -5,6 +5,7 @@
 #include "http_server.h"
 #include "storage.h"
 #include <stdio.h>
+#include <math.h>
 
 esp_err_t post_switch_state_handler(httpd_req_t *req)
 {
@@ -37,8 +38,10 @@ esp_err_t get_map_handler(httpd_req_t *req)
 
     for (int i = 0; i < ctx->dataset->data_count; i++) {
         Pos pos = ctx->dataset->data[i].pos;
+        int x = round(pos.x);
+        int y = round(pos.y);
         int len = snprintf(json_response, sizeof(json_response),
-                           "%s{\"x\": %d, \"y\": %d}", (i > 0) ? "," : "", pos.x, pos.y);
+                           "%s{\"x\": %d, \"y\": %d}", (i > 0) ? "," : "", x, y);
 
         if (httpd_resp_send_chunk(req, json_response, len) != ESP_OK) {
             httpd_resp_sendstr_chunk(req, NULL);
@@ -59,8 +62,8 @@ esp_err_t get_position_handler(httpd_req_t *req)
         return ESP_FAIL;
     }
 
-    int x = ctx->position.x;
-    int y = ctx->position.y;
+    int x = round(ctx->position.x);
+    int y = round(ctx->position.y);
 
     char json_response[64];
     snprintf(json_response, sizeof(json_response), "{\"x\": %d, \"y\": %d}", x, y);

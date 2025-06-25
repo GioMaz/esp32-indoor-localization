@@ -6,5 +6,5 @@
 #define MAX(a, b) a > b ? a : b
 
 typedef struct {
-    int16_t x, y;
+    float x, y;
 } Pos;

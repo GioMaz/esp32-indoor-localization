@@ -1,16 +1,18 @@
 #include <float.h>
 #include <math.h>
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "freertos/idf_additions.h"
 
-#include "dataset.h"
 #include "ap_scan.h"
+#include "dataset.h"
 #include "state_inference.h"
 
-void handle_inference_state(const Dataset *dataset,
+#define ALPHA 0.6
+
+void handle_inference_state(const Dataset *dataset, Pos *previous,
                             QueueHandle_t position_queue)
 {
     Query query;
@@ -19,6 +21,17 @@ void handle_inference_state(const Dataset *dataset,
     Pos pos;
     inference(dataset, &query, &pos);
 
+    // Calculate moving average
+    pos.x *= ALPHA;
+    pos.y *= ALPHA;
+    pos.x += (1 - ALPHA) * previous->x;
+    pos.y += (1 - ALPHA) * previous->y;
+
+    // Update previous
+    previous->x = pos.x;
+    previous->y = pos.y;
+
+    printf("INFERENCE RESULT: (%f, %f)\n", pos.x, pos.y);
     xQueueSend(position_queue, (void *)&pos, 0);
 }
 
@@ -37,20 +50,20 @@ void inference(const Dataset *dataset, const Query *query, Pos *result)
     qsort(dps, dataset->data_count, sizeof(dps[0]), cmp);
 
     for (int i = 0; i < dataset->data_count; i++) {
-        printf("POS: (%d, %d), DIST: %f\n", dps[i].pos.x, dps[i].pos.y, dps[i].dist);
+        printf("POS: (%f, %f), DIST: %f\n", dps[i].pos.x, dps[i].pos.y, dps[i].dist);
     }
 
     // Take the closest point
     if (dataset->data_count) {
         *result = dps[0].pos;
     } else {
-        *result = (Pos){0, 0};
+        *result = (Pos){0.0, 0.0};
     }
 
-    printf("INFERENCE RESULT: (%d, %d)\n", result->x, result->y);
+    printf("ALGO RESULT: (%f, %f)\n", result->x, result->y);
 }
 
-void append_macs(Mac macs[], int *macs_count, AccessPoint aps[], int aps_count)
+void append_macs(Mac macs[], int *macs_count, const AccessPoint aps[], int aps_count)
 {
     for (int i = 0; i < aps_count; i++) {
         bool found = false;
