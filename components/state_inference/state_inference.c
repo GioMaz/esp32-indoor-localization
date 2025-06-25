@@ -10,8 +10,6 @@
 #include "dataset.h"
 #include "state_inference.h"
 
-#define ALPHA 0.6
-
 void handle_inference_state(const Dataset *dataset, Pos *previous,
                             QueueHandle_t position_queue)
 {

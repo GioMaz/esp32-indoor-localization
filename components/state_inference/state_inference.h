@@ -4,6 +4,8 @@
 #include "utils.h"
 #include <stdint.h>
 
+#define ALPHA 0.6
+
 typedef struct {
     AccessPoint aps[APS_SIZE];
     uint8_t aps_count;
