@@ -4,6 +4,7 @@
 #include <unistd.h>
 
 #include "esp_err.h"
+#include "esp_log_level.h"
 #include "esp_task_wdt.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
@@ -33,6 +34,7 @@ void app_main(void)
     }
 
     State state = STATE_TRAINING;
+    State old_state = state;
 
     // Create direction queue
     QueueHandle_t direction_queue = xQueueCreate(10, sizeof(Pos));
@@ -62,5 +64,15 @@ void app_main(void)
             handle_inference_state(&dataset, &pos_inference, position_queue);
             break;
         }
+
+        // Reset position in case of state change
+        if (state != old_state) {
+            ESP_LOG_INFO(TAG, "State change");
+
+            pos_inference = (Pos){0, 0};
+            pos_training = (Pos){0, 0};
+        }
+
+        old_state = state;
     }
 }
