@@ -23,6 +23,8 @@ volatile bool btn_pressed[NUM_DIRS + 2] = {false};
 gpio_num_t btn_pins[NUM_DIRS + 2] = {BTN1, BTN2, BTN3, BTN4, BTN5, BTN6};
 Direction btn_to_dir[NUM_DIRS] = {LEFT, DOWN, UP, RIGHT};
 
+#define GPIO_STACK_SIZE 4096
+
 StaticTask_t gpio_tcb;
 StackType_t gpio_stack[GPIO_STACK_SIZE];
 
@@ -36,12 +38,18 @@ void setup_gpio()
 {
     ESP_ERROR_CHECK(gpio_install_isr_service(0));
 
+    // Setup buttons
     for (int i = 0; i < NUM_DIRS + 2; i++) {
         gpio_set_direction(btn_pins[i], GPIO_MODE_INPUT);
         gpio_set_pull_mode(btn_pins[i], GPIO_PULLUP_ONLY);
         gpio_set_intr_type(btn_pins[i], GPIO_INTR_NEGEDGE);
         gpio_isr_handler_add(btn_pins[i], btn_handler, (void *)i);
     }
+
+    // Setup LED
+    gpio_set_direction(SCAN_LED, GPIO_MODE_OUTPUT);
+    gpio_set_pull_mode(SCAN_LED, GPIO_PULLUP_DISABLE);
+    gpio_set_intr_type(SCAN_LED, GPIO_INTR_DISABLE);
 }
 
 void gpio_task_code(void *params)

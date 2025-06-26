@@ -3,7 +3,7 @@
 #include "freertos/idf_additions.h"
 #include "utils.h"
 
-#define GPIO_STACK_SIZE 4096
+#define SCAN_LED GPIO_NUM_2
 
 typedef enum {
     LEFT,

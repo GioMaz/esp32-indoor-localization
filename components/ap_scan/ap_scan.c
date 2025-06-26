@@ -9,6 +9,7 @@
 
 #include "esp_log.h"
 #include "esp_wifi.h"
+#include "driver/gpio.h"
 #include "esp_wifi_types_generic.h"
 #include "freertos/idf_additions.h"
 
@@ -30,7 +31,13 @@ uint8_t ap_scan(AccessPoint aps[])
         },
     };
 
+    // Turn on scan LED
+    gpio_set_level(SCAN_LED, 1);
+
     esp_wifi_scan_start(&scan_config, true);
+
+    // Turn off scan LED
+    gpio_set_level(SCAN_LED, 0);
 
     ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&ap_count, ap_info));
 
