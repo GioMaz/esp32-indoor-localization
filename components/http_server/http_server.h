@@ -4,6 +4,7 @@
 #include "esp_http_server.h"
 #include "freertos/idf_additions.h"
 #include "utils.h"
+#include <stdbool.h>
 
 /**
  * @brief Server context structure
@@ -15,6 +16,7 @@ typedef struct {
     Pos position; /**< Current position of the user */
     Dataset *dataset;
     State *state;
+    bool *reset_pos;
 } server_context_t;
 
 /**
@@ -55,7 +57,7 @@ typedef struct {
  *         otherwise `NULL`.
  */
 ServerWrapper *http_server_start(QueueHandle_t position_queue, Dataset *dataset,
-                                 State *state);
+                                 State *state, bool * reset);
 
 /**
  * @brief Stops the HTTP server

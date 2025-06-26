@@ -23,7 +23,7 @@ void server_update_task(void *param)
 }
 
 ServerWrapper *http_server_start(QueueHandle_t position_queue, Dataset *dataset,
-                                 State *state)
+                                 State *state, bool *reset_pos)
 {
     ESP_LOGI(TAG, "Starting Http Server...");
 
@@ -42,6 +42,7 @@ ServerWrapper *http_server_start(QueueHandle_t position_queue, Dataset *dataset,
     server_wrapper->ctx->position = (Pos){.x = 0.0, .y = 0.0};
     server_wrapper->ctx->dataset = dataset;
     server_wrapper->ctx->state = state;
+    server_wrapper->ctx->reset_pos = reset_pos;
 
     server_wrapper->task_args = calloc(1, sizeof(update_task_args_t));
     if (!server_wrapper->task_args) {

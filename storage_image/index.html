@@ -119,27 +119,19 @@
         const columns = max_x - min_x + 1;
         const rows = max_y - min_y + 1;
 
-        const old_columns = map.dataset.columns || 0;
-        const old_rows = map.dataset.rows || 0;
-
-        map.dataset.columns = columns;
-        map.dataset.rows = rows;
-
         map.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
         map.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
 
-        if (columns != old_columns || rows != old_rows) {
-            map.innerHTML = "";
-            for (let j = max_y; j >= min_y; j--) {
-                for (let i = min_x; i <= max_x; i++) {
-                    const pos_id = `(${i},${j})`;
-                    const node = document.createElement("div");
-                    const text = document.createTextNode(pos_id);
-                    node.id = pos_id;
-                    node.appendChild(text);
-                    node.classList.add("box");
-                    map.appendChild(node);
-                }
+        map.innerHTML = "";
+        for (let j = max_y; j >= min_y; j--) {
+            for (let i = min_x; i <= max_x; i++) {
+                const pos_id = `(${i},${j})`;
+                const node = document.createElement("div");
+                const text = document.createTextNode(pos_id);
+                node.id = pos_id;
+                node.appendChild(text);
+                node.classList.add("box");
+                map.appendChild(node);
             }
         }
 

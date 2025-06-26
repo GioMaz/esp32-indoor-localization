@@ -37,7 +37,7 @@ void app_main(void)
     }
 
     State state = STATE_TRAINING;
-    State old_state = state;
+    bool reset_pos = false;
 
     // Create direction queue
     QueueHandle_t direction_queue = xQueueCreate(10, sizeof(Pos));
@@ -46,12 +46,12 @@ void app_main(void)
     QueueHandle_t scan_queue = xQueueCreate(10, 1);
 
     // Create gpio task
-    GpioParams gpio_params = {direction_queue, scan_queue, &state};
+    GpioParams gpio_params = {direction_queue, scan_queue, &state, &reset_pos};
     TaskHandle_t gpio_task = gpio_task_create(&gpio_params);
 
     // Create server task
     QueueHandle_t position_queue = xQueueCreate(10, sizeof(Pos));
-    ServerWrapper *server = http_server_start(position_queue, &dataset, &state);
+    ServerWrapper *server = http_server_start(position_queue, &dataset, &state, &reset_pos);
 
     // Setup training/inference data
     Pos pos_inference = {0, 0};
@@ -69,13 +69,15 @@ void app_main(void)
         }
 
         // Reset position in case of state change
-        if (state != old_state) {
-            ESP_LOGI(TAG, "State change");
+        if (reset_pos) {
+            reset_pos = false;
+
+            ESP_LOGI(TAG, "Reset");
 
             pos_inference = (Pos){0, 0};
             pos_training = (Pos){0, 0};
-        }
 
-        old_state = state;
+            xQueueSend(position_queue, (void *)&pos_inference, 0);
+        }
     }
 }

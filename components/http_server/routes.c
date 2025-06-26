@@ -39,6 +39,8 @@ esp_err_t post_switch_state_handler(httpd_req_t *req)
         return ESP_FAIL;
     }
 
+    *ctx->reset_pos = true;
+
     httpd_resp_send(req, NULL, 0);
 
     return ESP_OK;
@@ -52,6 +54,8 @@ esp_err_t post_reset_dataset_handler(httpd_req_t *req)
     }
 
     dataset_init(ctx->dataset);
+
+    *ctx->reset_pos = true;
 
     httpd_resp_send(req, NULL, 0);
     return ESP_OK;
