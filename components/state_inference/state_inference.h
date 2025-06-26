@@ -4,7 +4,7 @@
 #include "utils.h"
 #include <stdint.h>
 
-#define ALPHA 0.6
+#define ALPHA 0.4
 
 typedef struct {
     AccessPoint aps[APS_SIZE];
