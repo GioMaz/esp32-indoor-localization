@@ -22,13 +22,14 @@
         }
 
         button {
-            width: 100px;
+            width: auto;
+            padding: 0px 5px;
         }
 
         .map {
             border: solid 1px;
             display: grid;
-            margin-top: 8px;
+            margin: 8px;
         }
 
         .box {
@@ -53,6 +54,10 @@
         .active {
             background-color: #33cc33 !important;
         }
+
+        .state {
+            text-transform: uppercase;
+        }
     </style>
 </head>
 
@@ -60,19 +65,22 @@
     <main>
         <h2>esp32 Indoor Localization</h2>
         <div>
-            <button id="switchBtn">SWITCH STATE</button>
-            <button id="resetBtn">RESET</button>
-            <button id="downloadBtn">DOWNLOAD</button>
-            <button id="uploadBtn">UPLOAD</button>
+            <button id="switchBtn">Switch to <span class="state" id="switchToState"></span></button>
+            <button id="resetBtn">Reset</button>
+            <button id="downloadBtn">Download</button>
+            <button id="uploadBtn">Upload</button>
         </div>
         <div class="map"></div>
+        <p>Current state: <span id="currentState" class="state"></span></p>
     </main>
 </body>
 
 </html>
 <script>
     const base_url = "http://192.168.4.1"
-    async function initializeMap() {
+    let state = "inference"
+
+    const initializeMap = async () => {
         const map = document.querySelector(".map");
         const response = await fetch(base_url + "/api/map")
         const positions = await response.json();
@@ -92,52 +100,46 @@
         const columns = max_x - min_x + 1;
         const rows = max_y - min_y + 1;
 
+        const old_columns = map.dataset.columns || 0;
+        const old_rows = map.dataset.rows || 0;
+
+        map.dataset.columns = columns;
+        map.dataset.rows = rows;
+
         map.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
         map.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
 
-        for (let j = max_y; j >= min_y; j--) {
-            for (let i = min_x; i <= max_x; i++) {
-                const pos_id = `(${i},${j})`;
-                const node = document.createElement("div");
-                const text = document.createTextNode(pos_id);
-                node.id = pos_id;
-                node.appendChild(text);
-                node.classList.add("box");
-                map.appendChild(node);
+        if (columns != old_columns || rows != old_rows) {
+            map.innerHTML = "";
+            for (let j = max_y; j >= min_y; j--) {
+                for (let i = min_x; i <= max_x; i++) {
+                    const pos_id = `(${i},${j})`;
+                    const node = document.createElement("div");
+                    const text = document.createTextNode(pos_id);
+                    node.id = pos_id;
+                    node.appendChild(text);
+                    node.classList.add("box");
+                    map.appendChild(node);
+                }
             }
         }
 
         positions.forEach((pos) => {
             const pos_id = `(${pos.x},${pos.y})`;
             const node = document.getElementById(pos_id);
-            if (node) {
+            if (node && !node.classList.contains("scanned")) {
                 node.classList.add("scanned");
             }
         });
     }
 
-    initializeMap();
+    const updateMap = () => {
+        if (state == "training") {
+            initializeMap();
+        }
+    }
 
-    const switchBtn = document.querySelector("#switchBtn")
-    switchBtn.addEventListener("click", () => {
-        fetch(base_url + "/api/switch-state", { method: "POST" })
-    })
-
-    const resetBtn = document.querySelector("#resetBtn")
-    resetBtn.addEventListener("click", () => {
-        fetch(base_url + "/api/reset", { method: "POST" })
-    })
-
-    const downloadBtn = document.querySelector("#downloadBtn")
-    downloadBtn.addEventListener("click", () => {
-        const link = document.createElement("a")
-        link.href = base_url + "/api/dataset"
-        link.download = "dataset.bin"
-
-        link.click()
-    })
-
-    setInterval(async () => {
+    const updatePosition = async () => {
         const {x, y} = await fetch(base_url + "/api/position").then(response => response.json())
         const id = `(${x},${y})`
         const old = document.querySelector(".active")
@@ -147,6 +149,52 @@
         }
 
         const new_active = document.getElementById(id)
-        new_active.classList.add("active")
-    }, 1000);
+        if (new_active) {
+            new_active.classList.add("active");
+        }
+    }
+
+    const getOppositeState = (state) => {
+        if (state == "training") {
+            return "inference"
+        } else {
+            return "training"
+        }
+    }
+
+    const updateState = async () => {
+        const res = await fetch(base_url + "/api/state").then(r => r.json());
+        state = res.state;
+
+        document.querySelector("#switchToState").innerHTML = getOppositeState(state);
+        document.querySelector("#currentState").innerHTML = state;
+    }
+
+
+    const switchBtn = document.querySelector("#switchBtn")
+    switchBtn.addEventListener("click", () => {
+        fetch(base_url + "/api/switch-state", {method: "POST"})
+    })
+
+    const resetBtn = document.querySelector("#resetBtn")
+    resetBtn.addEventListener("click", () => {
+        fetch(base_url + "/api/reset", {method: "POST"})
+    })
+
+    const downloadBtn = document.querySelector("#downloadBtn")
+    downloadBtn.addEventListener("click", () => {
+        const link = document.createElement("a")
+        link.href = base_url + "/api/dataset"
+        link.download = "dataset.bin"
+        link.click()
+    })
+
+    initializeMap();
+    setInterval(updateMap, 2000)
+
+    updatePosition();
+    setInterval(updatePosition, 1000);
+
+    updateState();
+    setInterval(updateState, 1000);
 </script>

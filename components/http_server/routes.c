@@ -1,11 +1,30 @@
 #include "routes.h"
 #include "dataset.h"
 #include "esp_http_server.h"
-#include "freertos/idf_additions.h"
 #include "http_server.h"
 #include "storage.h"
-#include <stdio.h>
+#include "utils.h"
 #include <math.h>
+#include <stdio.h>
+
+esp_err_t get_state_handler(httpd_req_t *req)
+{
+    server_context_t *ctx = (server_context_t *)req->user_ctx;
+    if (!ctx) {
+        return ESP_FAIL;
+    }
+
+    State *state = ctx->state;
+    const char *state_str = (*state == STATE_TRAINING) ? "training" : "inference";
+
+    char json_response[32];
+    snprintf(json_response, sizeof(json_response), "{\"state\":\"%s\"}", state_str);
+
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_send(req, json_response, HTTPD_RESP_USE_STRLEN);
+
+    return ESP_OK;
+}
 
 esp_err_t post_switch_state_handler(httpd_req_t *req)
 {
@@ -14,10 +33,10 @@ esp_err_t post_switch_state_handler(httpd_req_t *req)
         return ESP_FAIL;
     }
 
-    QueueHandle_t state_queue = ctx->state_queue;
-
-    int x = 1;
-    xQueueSend(state_queue, (void *)&x, 0);
+    State *state = ctx->state;
+    if (!toggle_state(state)) {
+        return ESP_FAIL;
+    }
 
     httpd_resp_send(req, NULL, 0);
 

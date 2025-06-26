@@ -1,9 +1,9 @@
 #pragma once
 
-#include "utils.h"
 #include "dataset.h"
 #include "esp_http_server.h"
 #include "freertos/idf_additions.h"
+#include "utils.h"
 
 /**
  * @brief Server context structure
@@ -14,7 +14,7 @@
 typedef struct {
     Pos position; /**< Current position of the user */
     Dataset *dataset;
-    QueueHandle_t state_queue;
+    State *state;
 } server_context_t;
 
 /**
@@ -54,9 +54,8 @@ typedef struct {
  * @return A pointer to a `ServerWrapper` object if the start is successful,
  *         otherwise `NULL`.
  */
-ServerWrapper *http_server_start(QueueHandle_t position_queue,
-                                 QueueHandle_t state_queue,
-                                 const Dataset *dataset);
+ServerWrapper *http_server_start(QueueHandle_t position_queue, Dataset *dataset,
+                                 State *state);
 
 /**
  * @brief Stops the HTTP server

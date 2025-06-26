@@ -37,7 +37,7 @@ void inference(const Dataset *dataset, const Query *query, Pos *previous, Pos *r
     qsort(dps, dataset->data_count, sizeof(dps[0]), cmp);
 
     for (int i = 0; i < dataset->data_count; i++) {
-        printf("POS: (%f, %f), DIST: %f\n", dps[i].pos.x, dps[i].pos.y, dps[i].dist);
+        printf("POS: (%3.1f, %3.1f), DIST: %3.1f\n", dps[i].pos.x, dps[i].pos.y, dps[i].dist);
     }
 
     // Take the closest point

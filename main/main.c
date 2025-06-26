@@ -11,16 +11,11 @@
 
 #include "gpio.h"
 #include "http_server.h"
+#include "setup.h"
 #include "state_inference.h"
 #include "state_training.h"
-#include "setup.h"
 #include "storage.h"
 #include "utils.h"
-
-typedef enum {
-    STATE_TRAINING,
-    STATE_INFERENCE,
-} State;
 
 void app_main(void)
 {
@@ -37,47 +32,35 @@ void app_main(void)
         printf("DATASET EMPTY\n");
     }
 
+    State state = STATE_TRAINING;
+
     // Create direction queue
     QueueHandle_t direction_queue = xQueueCreate(10, sizeof(Pos));
 
     // Create scan queue
     QueueHandle_t scan_queue = xQueueCreate(10, 1);
 
-    // Create state queue
-    QueueHandle_t state_queue = xQueueCreate(10, 1);
-
     // Create gpio task
-    GpioParams gpio_params = {
-        direction_queue,
-        state_queue,
-        scan_queue,
-    };
+    GpioParams gpio_params = {direction_queue, scan_queue, &state};
     TaskHandle_t gpio_task = gpio_task_create(&gpio_params);
 
     // Create server task
     QueueHandle_t position_queue = xQueueCreate(10, sizeof(Pos));
-    ServerWrapper *server = http_server_start(position_queue, state_queue,
-                                              (const Dataset *)&dataset);
+    ServerWrapper *server = http_server_start(position_queue, &dataset, &state);
 
     // Setup training/inference data
-    State state = STATE_TRAINING;
     Pos pos_inference = {0, 0};
     Pos pos_training = {0, 0};
 
     while (1) {
         switch (state) {
         case STATE_TRAINING:
-            handle_training_state(&dataset, &pos_training, position_queue, direction_queue, scan_queue);
+            handle_training_state(&dataset, &pos_training, position_queue,
+                                  direction_queue, scan_queue);
             break;
         case STATE_INFERENCE:
             handle_inference_state(&dataset, &pos_inference, position_queue);
             break;
         }
-        unsigned char signal = 0;
-        if (xQueueReceive(state_queue, &signal, 0) && signal) {
-            state =
-                (state == STATE_TRAINING) ? STATE_INFERENCE : STATE_TRAINING;
-            printf("CHANGE STATE\n");
-        };
     }
 }
