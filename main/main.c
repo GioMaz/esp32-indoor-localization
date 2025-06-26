@@ -70,7 +70,7 @@ void app_main(void)
 
         // Reset position in case of state change
         if (state != old_state) {
-            ESP_LOG_INFO(TAG, "State change");
+            ESP_LOGI(TAG, "State change");
 
             pos_inference = (Pos){0, 0};
             pos_training = (Pos){0, 0};
