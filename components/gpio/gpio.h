@@ -17,7 +17,7 @@ typedef struct {
     QueueHandle_t direction_queue;
     QueueHandle_t scan_queue;
     State *state;
-    bool *reset_pos;
+    Pos *pos;
 } GpioParams;
 
 void setup_gpio(void);

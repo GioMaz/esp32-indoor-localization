@@ -96,10 +96,12 @@
         }
     }
 
-    const initializeMap = async () => {
+    const updateMap = async () => {
         const map = document.querySelector(".map");
         const response = await fetch(base_url + "/api/map")
         const result = await response.json();
+
+        console.log(result);
 
         const position = result.position;
         const dataset = result.dataset ?? [];
@@ -147,21 +149,6 @@
         drawNewPosition(position);
     }
 
-    const polling = () => {
-        updateState();
-
-        if (state == "training") {
-            initializeMap();
-        } else {
-            updatePosition();
-        }
-    }
-
-    const updatePosition = async () => {
-        const newPosition = await fetch(base_url + "/api/position").then(response => response.json())
-        drawNewPosition(newPosition);
-    }
-
     const getOppositeState = (state) => {
         if (state == "training") {
             return "inference"
@@ -177,7 +164,6 @@
         document.querySelector("#switchToState").innerHTML = getOppositeState(state);
         document.querySelector("#currentState").innerHTML = state;
     }
-
 
     const switchBtn = document.querySelector("#switchBtn")
     switchBtn.addEventListener("click", () => {
@@ -196,6 +182,11 @@
         link.download = "dataset.bin"
         link.click()
     })
+
+    const polling = () => {
+        updateState();
+        updateMap();
+    }
 
     setInterval(polling, 1000);
 </script>

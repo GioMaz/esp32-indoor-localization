@@ -20,16 +20,14 @@ Pos dir_to_offset[] = {
     [DOWN] = {0.0, -1.0},
 };
 
-void handle_training_state(Dataset *dataset, Pos *pos, QueueHandle_t position_queue, QueueHandle_t direction_queue, QueueHandle_t scan_queue)
+void handle_training_state(Dataset *dataset, Pos *pos, QueueHandle_t direction_queue, QueueHandle_t scan_queue)
 {
     // Check for direction change
     Direction direction;
     if (xQueueReceive(direction_queue, &direction, 0)) {
         pos->x += dir_to_offset[direction].x;
         pos->y += dir_to_offset[direction].y;
-
         printf("Moved to position (%3.1f, %3.1f).\n", pos->x, pos->y);
-        xQueueSend(position_queue, (void *)pos, 0);
     }
 
     // Check for scan command

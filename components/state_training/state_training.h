@@ -6,4 +6,4 @@
 
 #define SCAN_ITERATIONS 4
 
-void handle_training_state(Dataset *dataset, Pos *pos, QueueHandle_t position_queue, QueueHandle_t direction_queue, QueueHandle_t scan_queue);
+void handle_training_state(Dataset *dataset, Pos *pos, QueueHandle_t direction_queue, QueueHandle_t scan_queue);

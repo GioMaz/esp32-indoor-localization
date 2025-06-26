@@ -10,19 +10,14 @@
 #include "dataset.h"
 #include "state_inference.h"
 
-void handle_inference_state(const Dataset *dataset, Pos *previous,
-                            QueueHandle_t position_queue)
+void handle_inference_state(const Dataset *dataset, Pos *previous)
 {
     Query query;
     query.aps_count = ap_scan(query.aps);
-
-    Pos result;
-    inference(dataset, &query, previous, &result);
-
-    xQueueSend(position_queue, (void *)&result, 0);
+    inference(dataset, previous, &query);
 }
 
-void inference(const Dataset *dataset, const Query *query, Pos *previous, Pos *result)
+void inference(const Dataset *dataset, Pos *previous, const Query *query)
 {
     DistPos dps[DATASET_SIZE];
 
@@ -41,25 +36,24 @@ void inference(const Dataset *dataset, const Query *query, Pos *previous, Pos *r
     }
 
     // Take the closest point
+    Pos result;
     if (dataset->data_count) {
-        *result = dps[0].pos;
+        result = dps[0].pos;
     } else {
-        *result = (Pos){0.0, 0.0};
+        result = (Pos){0.0, 0.0};
     }
 
-    printf("ALGORITHM RESULT: (%f, %f)\n", result->x, result->y);
+    printf("ALGORITHM RESULT: (%f, %f)\n", result.x, result.y);
 
     // Calculate moving average
-    result->x *= ALPHA;
-    result->y *= ALPHA;
-    result->x += (1 - ALPHA) * previous->x;
-    result->y += (1 - ALPHA) * previous->y;
+    result.x *= ALPHA;
+    result.y *= ALPHA;
+    result.x += (1 - ALPHA) * previous->x;
+    result.y += (1 - ALPHA) * previous->y;
+    previous->x = result.x;
+    previous->y = result.y;
 
-    // Update previous
-    previous->x = result->x;
-    previous->y = result->y;
-
-    printf("MOVING AVERAGE RESULT: (%f, %f)\n", result->x, result->y);
+    printf("MOVING AVERAGE RESULT: (%f, %f)\n", result.x, result.y);
 }
 
 double fingerprint_dist(const Fingerprint *fingerprint, const Query *query)

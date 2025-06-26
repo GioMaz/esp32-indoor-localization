@@ -13,22 +13,10 @@
  * (x, y) that is periodically updated.
  */
 typedef struct {
-    Pos position; /**< Current position of the user */
     Dataset *dataset;
     State *state;
-    bool *reset_pos;
+    Pos *pos; /**< Current position of the user */
 } server_context_t;
-
-/**
- * @brief Update task arguments structure
- *
- * Contains the server context and the queue used for communication between
- * tasks, specifically for updating the server's position.
- */
-typedef struct {
-    server_context_t *ctx;        /**< Pointer to the server context */
-    QueueHandle_t position_queue; /**< Queue to receive position updates */
-} update_task_args_t;
 
 /**
  * @brief Structure that encapsulates the HTTP server, context, and tasks
@@ -39,7 +27,6 @@ typedef struct {
 typedef struct {
     httpd_handle_t server;         /**< HTTP server handle */
     server_context_t *ctx;         /**< Server context */
-    update_task_args_t *task_args; /**< Arguments for the update task */
     TaskHandle_t task_handle;      /**< Handle for the update task */
 } ServerWrapper;
 
@@ -56,8 +43,7 @@ typedef struct {
  * @return A pointer to a `ServerWrapper` object if the start is successful,
  *         otherwise `NULL`.
  */
-ServerWrapper *http_server_start(QueueHandle_t position_queue, Dataset *dataset,
-                                 State *state, bool * reset);
+ServerWrapper *http_server_start(Dataset *dataset, State *state, Pos *pos);
 
 /**
  * @brief Stops the HTTP server

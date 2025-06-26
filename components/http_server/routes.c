@@ -39,7 +39,7 @@ esp_err_t post_switch_state_handler(httpd_req_t *req)
         return ESP_FAIL;
     }
 
-    *ctx->reset_pos = true;
+    *ctx->pos = (Pos){0, 0};
 
     httpd_resp_send(req, NULL, 0);
 
@@ -55,7 +55,7 @@ esp_err_t post_reset_dataset_handler(httpd_req_t *req)
 
     dataset_init(ctx->dataset);
 
-    *ctx->reset_pos = true;
+    *ctx->pos = (Pos){0, 0};
 
     httpd_resp_send(req, NULL, 0);
     return ESP_OK;
@@ -76,9 +76,8 @@ esp_err_t get_map_handler(httpd_req_t *req)
     int data_count = ctx->dataset->data_count;
 
     {
-        Pos pos = ctx->position;
-        int x = round(pos.x);
-        int y = round(pos.y);
+        int x = round(ctx->pos->x);
+        int y = round(ctx->pos->y);
         int len = snprintf(json_response, sizeof(json_response),
                            "\"position\": {\"x\": %d, \"y\": %d}%s", x, y,
                            (data_count > 0) ? "," : "");
@@ -113,24 +112,6 @@ esp_err_t get_map_handler(httpd_req_t *req)
     httpd_resp_send_chunk(req, "}", 1);
     httpd_resp_send_chunk(req, NULL, 0); // transmission end
 
-    return ESP_OK;
-}
-
-esp_err_t get_position_handler(httpd_req_t *req)
-{
-    server_context_t *ctx = (server_context_t *)req->user_ctx;
-    if (!ctx) {
-        return ESP_FAIL;
-    }
-
-    int x = round(ctx->position.x);
-    int y = round(ctx->position.y);
-
-    char json_response[64];
-    snprintf(json_response, sizeof(json_response), "{\"x\": %d, \"y\": %d}", x, y);
-
-    httpd_resp_set_type(req, "application/json");
-    httpd_resp_send(req, json_response, HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
 }
 

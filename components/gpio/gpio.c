@@ -58,7 +58,7 @@ void gpio_task_code(void *params)
     QueueHandle_t direction_queue = gpio_params->direction_queue;
     QueueHandle_t scan_queue = gpio_params->scan_queue;
     State *state = gpio_params->state;
-    bool *reset_pos = gpio_params->reset_pos;
+    Pos *pos = gpio_params->pos;
 
     Direction direction;
 
@@ -91,7 +91,7 @@ void gpio_task_code(void *params)
                 btn_pressed[NUM_DIRS + 1] = false;
                 printf("Pressed button %d\n", btn_pins[NUM_DIRS + 1]);
                 toggle_state(state);
-                *reset_pos = true;
+                *pos = (Pos){0, 0};
             }
         }
     }
