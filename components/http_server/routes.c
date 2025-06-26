@@ -6,6 +6,7 @@
 #include "utils.h"
 #include <math.h>
 #include <stdio.h>
+#include <string.h>
 
 esp_err_t get_state_handler(httpd_req_t *req)
 {
@@ -66,14 +67,17 @@ esp_err_t get_map_handler(httpd_req_t *req)
     httpd_resp_set_type(req, "application/json");
 
     char json_response[64];
-    httpd_resp_send_chunk(req, "[", 1);
+    httpd_resp_send_chunk(req, "{", 1);
 
-    for (int i = 0; i < ctx->dataset->data_count; i++) {
-        Pos pos = ctx->dataset->data[i].pos;
+    int data_count = ctx->dataset->data_count;
+
+    {
+        Pos pos = ctx->position;
         int x = round(pos.x);
         int y = round(pos.y);
         int len = snprintf(json_response, sizeof(json_response),
-                           "%s{\"x\": %d, \"y\": %d}", (i > 0) ? "," : "", x, y);
+                           "\"position\": {\"x\": %d, \"y\": %d}%s", x, y,
+                           (data_count > 0) ? "," : "");
 
         if (httpd_resp_send_chunk(req, json_response, len) != ESP_OK) {
             httpd_resp_sendstr_chunk(req, NULL);
@@ -81,7 +85,28 @@ esp_err_t get_map_handler(httpd_req_t *req)
         }
     }
 
-    httpd_resp_send_chunk(req, "]", 1);
+    if (data_count > 0) {
+        const char *prefix = "\"dataset\": [";
+        httpd_resp_send_chunk(req, prefix, strlen(prefix));
+
+        for (int i = 0; i < data_count; i++) {
+            Pos pos = ctx->dataset->data[i].pos;
+            int x = round(pos.x);
+            int y = round(pos.y);
+            int len =
+                snprintf(json_response, sizeof(json_response), "{\"x\": %d, \"y\": %d}%s",
+                         x, y, i < data_count - 1 ? "," : "");
+
+            if (httpd_resp_send_chunk(req, json_response, len) != ESP_OK) {
+                httpd_resp_sendstr_chunk(req, NULL);
+                return ESP_FAIL;
+            }
+        }
+
+        httpd_resp_send_chunk(req, "]", 1);
+    }
+
+    httpd_resp_send_chunk(req, "}", 1);
     httpd_resp_send_chunk(req, NULL, 0); // transmission end
 
     return ESP_OK;
