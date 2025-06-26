@@ -1,5 +1,9 @@
 ## ESP-IDF Project Setup
 
+
+<img src="https://github.com/user-attachments/assets/a174c2ff-85a9-4b46-bfbf-fe9a326f59b8" width="200" />
+
+
 ### Prerequisites
 
 #### Install ESP-IDF (recommended version: 5.4.1 or later).
