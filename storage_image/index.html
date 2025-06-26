@@ -140,16 +140,16 @@
             }
         }
 
+        if (dataset) {
+            dataset.forEach((pos) => {
+                const pos_id = `(${pos.x},${pos.y})`;
+                const node = document.getElementById(pos_id);
 
-
-        dataset.forEach((pos) => {
-            const pos_id = `(${pos.x},${pos.y})`;
-            const node = document.getElementById(pos_id);
-
-            if (node && !node.classList.contains("scanned")) {
-                node.classList.add("scanned");
-            }
-        });
+                if (node && !node.classList.contains("scanned")) {
+                    node.classList.add("scanned");
+                }
+            });
+        }
 
         drawNewPosition(position);
     }
