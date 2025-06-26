@@ -13,64 +13,51 @@
         }
 
         main {
+            padding: 2px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            height: 100vh;
-            padding: 10px;
-            box-sizing: border-box;
+            gap: 2px;
+            width: 100vw;
         }
 
         button {
-            width: 100px;
-        }
-
-        .map-wrapper {
-            width: fit-content;
-            max-width: 90vw;
-            max-height: 80vh;
-            overflow-x: auto;
-            overflow-y: auto;
-            border: 1px solid black;
-            -webkit-overflow-scrolling: touch;
-            margin: auto;
+            width: auto;
+            padding: 0px 5px;
         }
 
         .map {
+            border: solid 1px;
             display: grid;
-            grid-template-columns: repeat(var(--columns), 48px);
-            grid-template-rows: repeat(var(--rows), 48px);
-            gap: 0;
+            margin: 8px;
         }
 
         .box {
-            width: 48px;
-            height: 48px;
-            border: 1px solid black;
+            width: 32px;
+            height: 32px;
+
+            border: solid black 1px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: #808080;  /* dark gray by default */
+
+            background-color: #808080;
+            padding: 4px;
             text-align: center;
-            font-size: 14px;
-            line-height: 1.1;
-            user-select: none;
-            padding: 0;
+            font-size: 12px;
         }
 
-        .box.scanned {
-            background-color: #E0E0E0;  /* light gray for points in dataset */
+        .scanned {
+            background-color: #E0E0E0;
         }
 
-        .active-default {
-            background-color: #228B22 !important;  /* dark green for default→active */
+        .active {
+            background-color: #33cc33 !important;
         }
 
-        .active-scanned {
-            background-color: #90EE90 !important;  /* light green for scanned→active */
+        .state {
+            text-transform: uppercase;
         }
-
     </style>
 </head>
 
@@ -78,190 +65,136 @@
     <main>
         <h2>esp32 Indoor Localization</h2>
         <div>
-            <button id="switchBtn">SWITCH STATE</button>
-            <button id="resetBtn">RESET</button>
-            <button id="downloadBtn">DOWNLOAD</button>
-            <button id="uploadBtn">UPLOAD</button>
+            <button id="switchBtn">Switch to <span class="state" id="switchToState"></span></button>
+            <button id="resetBtn">Reset</button>
+            <button id="downloadBtn">Download</button>
+            <button id="uploadBtn">Upload</button>
         </div>
-        <div class="map-wrapper">
-            <div class="map"></div>
-        </div>
+        <div class="map"></div>
+        <p>Current state: <span id="currentState" class="state"></span></p>
     </main>
 </body>
 
 </html>
 <script>
-    const base_url = "http://192.168.4.1";
-    let currentState = null;
+    const base_url = "http://192.168.4.1"
+    let state = "inference"
 
-    async function initializeMap() {
+    const initializeMap = async () => {
         const map = document.querySelector(".map");
-        const mapWrapper = document.querySelector(".map-wrapper");
-
-        // Save current scroll position
-        const scrollLeft = mapWrapper.scrollLeft;
-        const scrollTop = mapWrapper.scrollTop;
-
-        const response = await fetch(base_url + "/api/map");
+        const response = await fetch(base_url + "/api/map")
         const positions = await response.json();
-        const padding = 5;
 
-        // If dataset is empty, use padding centered on 0,0
-        let raw_min_x, raw_max_x, raw_min_y, raw_max_y;
-        if (positions.length === 0) {
-            raw_min_x = raw_max_x = raw_min_y = raw_max_y = 0;
-        } else {
-            [raw_min_x, raw_max_x, raw_min_y, raw_max_y] = positions.reduce(
-                (acc, {x, y}) => [
-                    Math.min(acc[0], x),
-                    Math.max(acc[1], x),
-                    Math.min(acc[2], y),
-                    Math.max(acc[3], y)
-                ],
-                [Infinity, -Infinity, Infinity, -Infinity]
-            );
-        }
-
-        const min_x = raw_min_x - padding;
-        const max_x = raw_max_x + padding;
-        const min_y = raw_min_y - padding;
-        const max_y = raw_max_y + padding;
+        const [min_x, max_x, min_y, max_y] = positions.reduce(
+            (acc, {x, y}) => {
+                return [
+                    Math.min(acc[0], x), // min_x
+                    Math.max(acc[1], x), // max_x
+                    Math.min(acc[2], y), // min_y
+                    Math.max(acc[3], y)  // max_y
+                ];
+            },
+            [Infinity, -Infinity, Infinity, -Infinity] // initial values
+        );
 
         const columns = max_x - min_x + 1;
         const rows = max_y - min_y + 1;
 
-        const prevCols = parseInt(map.style.getPropertyValue("--columns") || "0");
-        const prevRows = parseInt(map.style.getPropertyValue("--rows") || "0");
-        const gridChanged = prevCols !== columns || prevRows !== rows;
+        const old_columns = map.dataset.columns || 0;
+        const old_rows = map.dataset.rows || 0;
 
-        if (!gridChanged && map.dataset.built === "true") {
-            // Only update classes, no rebuild
-            document.querySelectorAll(".box").forEach(node => {
-                node.classList.remove("scanned");
-            });
-            positions.forEach(({x, y}) => {
-                const node = document.getElementById(`(${x},${y})`);
-                if (node) node.classList.add("scanned");
-            });
-        } else {
-            // Completely recreate grid
+        map.dataset.columns = columns;
+        map.dataset.rows = rows;
+
+        map.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+        map.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+
+        if (columns != old_columns || rows != old_rows) {
             map.innerHTML = "";
-            map.style.setProperty("--columns", columns);
-            map.style.setProperty("--rows", rows);
-
             for (let j = max_y; j >= min_y; j--) {
                 for (let i = min_x; i <= max_x; i++) {
                     const pos_id = `(${i},${j})`;
                     const node = document.createElement("div");
+                    const text = document.createTextNode(pos_id);
                     node.id = pos_id;
+                    node.appendChild(text);
                     node.classList.add("box");
-                    node.textContent = pos_id;
                     map.appendChild(node);
                 }
             }
-
-            positions.forEach(({x, y}) => {
-                const node = document.getElementById(`(${x},${y})`);
-                if (node) node.classList.add("scanned");
-            });
-
-            map.dataset.built = "true";
         }
 
-        // Restore scroll position
-        mapWrapper.scrollLeft = scrollLeft;
-        mapWrapper.scrollTop = scrollTop;
+        positions.forEach((pos) => {
+            const pos_id = `(${pos.x},${pos.y})`;
+            const node = document.getElementById(pos_id);
+            if (node && !node.classList.contains("scanned")) {
+                node.classList.add("scanned");
+            }
+        });
     }
 
-
-
-    initializeMap();
-
-    // BUTTONS
-    const switchBtn = document.querySelector("#switchBtn");
-    const resetBtn = document.querySelector("#resetBtn");
-    const downloadBtn = document.querySelector("#downloadBtn");
-
-    switchBtn.addEventListener("click", () => {
-        fetch(base_url + "/api/switch-state", { method: "POST" });
-    });
-
-    resetBtn.addEventListener("click", async () => {
-        try {
-            const response = await fetch(base_url + "/api/reset", { method: "POST" });
-            if (!response.ok) throw new Error("Reset failed");
-
-            // Wait 500 ms before reloading the map
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            await initializeMap();
-        } catch (error) {
-            console.error("Error during reset:", error);
-        }
-    });
-
-
-    downloadBtn.addEventListener("click", () => {
-        const link = document.createElement("a");
-        link.href = base_url + "/api/dataset";
-        link.download = "dataset.bin";
-        link.click();
-    });
-
-    // UPDATE ACTIVE POSITION
-    setInterval(async () => {
-        try {
-            const {x, y} = await fetch(base_url + "/api/position").then(r => r.json());
-            const id = `(${x},${y})`;
-            document.querySelectorAll(".active-default, .active-scanned").forEach(el => {
-                el.classList.remove("active-default", "active-scanned");
-            });
-
-            const new_active = document.getElementById(id);
-            if (new_active) {
-                if (new_active.classList.contains("scanned")) {
-                    new_active.classList.add("active-scanned");
-                } else {
-                    new_active.classList.add("active-default");
-                }
-            }
-        } catch (e) {
-            console.error("Error fetching position:", e);
-        }
-    }, 1000);
-
-    setInterval(() => {
-        if (currentState === "training") {
+    const updateMap = () => {
+        if (state == "training") {
             initializeMap();
         }
-    }, 20000);
+    }
 
-    // UPDATE STATE (every 2 seconds)
-    async function updateStateUI() {
-        try {
-            const { state } = await fetch(base_url + "/api/state").then(r => r.json());
-            currentState = state; 
-            switchBtn.textContent = `State: ${state}`;
+    const updatePosition = async () => {
+        const {x, y} = await fetch(base_url + "/api/position").then(response => response.json())
+        const id = `(${x},${y})`
+        const old = document.querySelector(".active")
 
-            if (state === "inference") {
-                switchBtn.style.backgroundColor = "#4CAF50"; // green
-                switchBtn.style.color = "white";
-            } else if (state === "training") {
-                switchBtn.style.backgroundColor = "#2196F3"; // blue
-                switchBtn.style.color = "white";
-            } else {
-                switchBtn.style.backgroundColor = "gray";
-                switchBtn.style.color = "white";
-            }
-        } catch (e) {
-            console.error("Error fetching state:", e);
-            switchBtn.textContent = "State: unknown";
-            switchBtn.style.backgroundColor = "gray";
-            switchBtn.style.color = "white";
+        if (old) {
+            old.classList.remove("active")
+        }
+
+        const new_active = document.getElementById(id)
+        if (new_active) {
+            new_active.classList.add("active");
         }
     }
 
-    setInterval(updateStateUI, 2000); // update every 2 seconds
-    updateStateUI(); // update immediately on startup
+    const getOppositeState = (state) => {
+        if (state == "training") {
+            return "inference"
+        } else {
+            return "training"
+        }
+    }
 
+    const updateState = async () => {
+        const res = await fetch(base_url + "/api/state").then(r => r.json());
+        state = res.state;
+
+        document.querySelector("#switchToState").innerHTML = getOppositeState(state);
+        document.querySelector("#currentState").innerHTML = state;
+    }
+
+
+    const switchBtn = document.querySelector("#switchBtn")
+    switchBtn.addEventListener("click", () => {
+        fetch(base_url + "/api/switch-state", {method: "POST"})
+    })
+
+    const resetBtn = document.querySelector("#resetBtn")
+    resetBtn.addEventListener("click", () => {
+        fetch(base_url + "/api/reset", {method: "POST"})
+    })
+
+    const downloadBtn = document.querySelector("#downloadBtn")
+    downloadBtn.addEventListener("click", () => {
+        const link = document.createElement("a")
+        link.href = base_url + "/api/dataset"
+        link.download = "dataset.bin"
+        link.click()
+    })
+
+    initializeMap();
+    setInterval(updateMap, 2000)
+
+    updatePosition();
+    setInterval(updatePosition, 1000);
+
+    updateState();
+    setInterval(updateState, 1000);
 </script>
