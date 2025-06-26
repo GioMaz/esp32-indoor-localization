@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "esp_log.h"
 #include "esp_err.h"
 #include "esp_log_level.h"
 #include "esp_task_wdt.h"
@@ -18,6 +19,8 @@
 #include "storage.h"
 #include "utils.h"
 
+static const char *TAG = "main";
+
 void app_main(void)
 {
     // Setup peripherals
@@ -28,9 +31,9 @@ void app_main(void)
     dataset_init(&dataset);
 
     if (!read_dataset_from_storage(&dataset)) {
-        printf("DATASET LOADED\n");
+        ESP_LOGI(TAG, "DATASET LOADED");
     } else {
-        printf("DATASET EMPTY\n");
+        ESP_LOGI(TAG, "DATASET EMPTY");
     }
 
     State state = STATE_TRAINING;
