@@ -21,11 +21,6 @@ typedef struct {
     Pos pos;
 } Fingerprint;
 
-typedef enum {
-    STATE_TRAINING,
-    STATE_INFERENCE,
-} State;
-
 #define DATASET_SIZE 64
 
 typedef struct {

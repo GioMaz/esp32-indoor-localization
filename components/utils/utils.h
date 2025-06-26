@@ -8,3 +8,10 @@
 typedef struct {
     float x, y;
 } Pos;
+
+typedef enum {
+    STATE_TRAINING,
+    STATE_INFERENCE,
+} State;
+
+int toggle_state(State * state);

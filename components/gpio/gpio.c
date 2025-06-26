@@ -1,5 +1,4 @@
 #include "gpio.h"
-#include "utils.h"
 #include "driver/gpio.h"
 #include "esp_attr.h"
 #include "esp_err.h"
@@ -7,6 +6,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/idf_additions.h"
 #include "freertos/task.h"
+#include "utils.h"
 #include <stdio.h>
 
 #define NUM_DIRS 4
@@ -48,8 +48,8 @@ void gpio_task_code(void *params)
 {
     GpioParams *gpio_params = (GpioParams *)params;
     QueueHandle_t direction_queue = gpio_params->direction_queue;
-    QueueHandle_t state_queue = gpio_params->state_queue;
     QueueHandle_t scan_queue = gpio_params->scan_queue;
+    State *state = gpio_params->state;
 
     Direction direction;
 
@@ -71,16 +71,18 @@ void gpio_task_code(void *params)
                 }
             }
 
+
             if (btn_pressed[NUM_DIRS]) {
                 btn_pressed[NUM_DIRS] = false;
+                printf("Pressed button %d\n", btn_pins[NUM_DIRS]);
                 int x = 1;
-                xQueueSend(state_queue, (void *)&x, 0);
+                xQueueSend(scan_queue, (void *)&x, 0);
             }
 
             if (btn_pressed[NUM_DIRS + 1]) {
                 btn_pressed[NUM_DIRS + 1] = false;
-                int x = 1;
-                xQueueSend(scan_queue, (void *)&x, 0);
+                printf("Pressed button %d\n", btn_pins[NUM_DIRS + 1]);
+                toggle_state(state);
             }
         }
     }
@@ -89,7 +91,7 @@ void gpio_task_code(void *params)
 TaskHandle_t gpio_task_create(GpioParams *gpio_params)
 {
     TaskHandle_t handle =
-        xTaskCreateStatic(gpio_task_code, "gpio_task", GPIO_STACK_SIZE,
-                          gpio_params, tskIDLE_PRIORITY, gpio_stack, &gpio_tcb);
+        xTaskCreateStatic(gpio_task_code, "gpio_task", GPIO_STACK_SIZE, gpio_params,
+                          tskIDLE_PRIORITY, gpio_stack, &gpio_tcb);
     return handle;
 }

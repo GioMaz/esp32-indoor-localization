@@ -1,6 +1,7 @@
 #pragma once
 
 #include "freertos/idf_additions.h"
+#include "utils.h"
 
 #define GPIO_STACK_SIZE 4096
 
@@ -14,7 +15,7 @@ typedef enum {
 typedef struct {
     QueueHandle_t direction_queue;
     QueueHandle_t scan_queue;
-    QueueHandle_t state_queue;
+    State *state;
 } GpioParams;
 
 void setup_gpio(void);
