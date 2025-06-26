@@ -99,11 +99,10 @@
     const initializeMap = async () => {
         const map = document.querySelector(".map");
         const response = await fetch(base_url + "/api/map")
-        const {position, dataset} = await response.json();
+        const result = await response.json();
 
-        if (!dataset) {
-            dataset = [];
-        }
+        const position = result.position;
+        const dataset = result.dataset ?? [];
 
         const [min_x, max_x, min_y, max_y] = [position, ...dataset].reduce(
             (acc, {x, y}) => {
