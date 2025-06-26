@@ -16,24 +16,13 @@ void handle_inference_state(const Dataset *dataset, Pos *previous,
     Query query;
     query.aps_count = ap_scan(query.aps);
 
-    Pos pos;
-    inference(dataset, &query, &pos);
+    Pos result;
+    inference(dataset, &query, previous, &result);
 
-    // Calculate moving average
-    pos.x *= ALPHA;
-    pos.y *= ALPHA;
-    pos.x += (1 - ALPHA) * previous->x;
-    pos.y += (1 - ALPHA) * previous->y;
-
-    // Update previous
-    previous->x = pos.x;
-    previous->y = pos.y;
-
-    printf("INFERENCE RESULT: (%3.1f, %3.1f)\n", pos.x, pos.y);
-    xQueueSend(position_queue, (void *)&pos, 0);
+    xQueueSend(position_queue, (void *)&result, 0);
 }
 
-void inference(const Dataset *dataset, const Query *query, Pos *result)
+void inference(const Dataset *dataset, const Query *query, Pos *previous, Pos *result)
 {
     DistPos dps[DATASET_SIZE];
 
@@ -58,7 +47,19 @@ void inference(const Dataset *dataset, const Query *query, Pos *result)
         *result = (Pos){0.0, 0.0};
     }
 
-    printf("ALGO RESULT: (%3.1f, %3.1f)\n", result->x, result->y);
+    printf("ALGORITHM RESULT: (%f, %f)\n", result->x, result->y);
+
+    // Calculate moving average
+    result->x *= ALPHA;
+    result->y *= ALPHA;
+    result->x += (1 - ALPHA) * previous->x;
+    result->y += (1 - ALPHA) * previous->y;
+
+    // Update previous
+    previous->x = result->x;
+    previous->y = result->y;
+
+    printf("MOVING AVERAGE RESULT: (%f, %f)\n", result->x, result->y);
 }
 
 double fingerprint_dist(const Fingerprint *fingerprint, const Query *query)
