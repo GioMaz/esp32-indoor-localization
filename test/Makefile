@@ -1,5 +1,4 @@
 CC=gcc
-CFLAGS=-Wall
 BUILD_DIR=build
 COMPONENTS_DIR=../components
 INCLUDE_DIRS=-I$(COMPONENTS_DIR)/dataset -I$(COMPONENTS_DIR)/utils -I$(COMPONENTS_DIR)/inference
@@ -11,7 +10,7 @@ run: $(BUILD_DIR)/$(TEST_OUT) $(BUILD_DIR)/$(WIFI_MAP_CSV)
 	$(BUILD_DIR)/$(TEST_OUT)
 
 $(BUILD_DIR)/$(TEST_OUT): test.c | $(BUILD_DIR)
-	$(CC) $(CFLAGS) $(INCLUDE_DIRS) $(COMPILED_FILES) -o $(BUILD_DIR)/$(TEST_OUT) test.c
+	$(CC) $(INCLUDE_DIRS) $(COMPILED_FILES) -o $(BUILD_DIR)/$(TEST_OUT) test.c -lm
 
 $(BUILD_DIR)/$(WIFI_MAP_CSV): generate.py | $(BUILD_DIR)
 	python3 generate.py

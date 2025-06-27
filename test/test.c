@@ -8,7 +8,7 @@
 #include "utils.h"
 #include "inference.h"
 
-#define NUM_ITERATIONS 10
+#define NUM_ITERATIONS 100
 
 // Converts MAC string to array of 6 bytes
 void parse_mac(const char *mac_str, uint8_t *mac_out) {
@@ -95,7 +95,6 @@ int main() {
     Pos previous = {0.0, 0.0};  
 
     for (int i = 0; i < NUM_ITERATIONS; i++) {
-        
         // New query with noise
         Query query;
         make_noisy_query(original, &query);
