@@ -69,7 +69,7 @@ void make_noisy_query(const Fingerprint *fp, Query *query) {
     query->aps_count = fp->aps_count;
     for (int i = 0; i < fp->aps_count; i++) {
         memcpy(query->aps[i].mac, fp->aps[i].mac, 6);
-        query->aps[i].rssi = fp->aps[i].rssi + (rand() % 11 - 5);  // ±5 of noise
+        query->aps[i].rssi = fp->aps[i].rssi + (rand() % 11 - 5);
     }
 }
 
