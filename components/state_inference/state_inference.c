@@ -43,7 +43,7 @@ void inference(const Dataset *dataset, Pos *previous, const Query *query)
         result = (Pos){0.0, 0.0};
     }
 
-    printf("ALGORITHM RESULT: (%f, %f)\n", result.x, result.y);
+    printf("KNN RESULT: (%f, %f)\n", result.x, result.y);
 
     // Calculate moving average
     result.x *= ALPHA;

@@ -28,7 +28,7 @@ void handle_training_state(Dataset *dataset, Pos *pos, QueueHandle_t direction_q
     // Check for scan command
     unsigned char signal = 0;
     if (xQueueReceive(scan_queue, &signal, 0) && signal) {
-        printf("Scanning position (%3.1f ,%3.1f)...\n", pos->x, pos->y);
+        printf("Scanning position (%3.1f, %3.1f)...\n", pos->x, pos->y);
 
         int scan_iterations = SCAN_ITERATIONS;
         while (scan_iterations-- && dataset->data_count < DATASET_SIZE) {
