@@ -1,6 +1,7 @@
 .vscode/
-build/
 .cache
+build/
+test.out
 sdkconfig*
 dependencies.lock
 managed_components/
