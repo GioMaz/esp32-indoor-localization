@@ -201,12 +201,12 @@ esp32-indoor-localization
 
 1) Connect to the ESP Access Point through WiFi
 2) Navigate to the web site, hosted at the default address `192.168.4.1`
-3) Navigate to the intended position by using the directional buttons on the breadboard, you should see the map on the website updating in real time
+3) Navigate to the intended position by using the directional buttons on the breadboard, you should see the map on the website update in real time
 4) Press the SCAN button on the breadboard to acquire data from nearby access points
 5) Repeat steps 3-4 until the dataset is complete
+6) Click the `Download` button on the website to save the dataset as a binary file
 
 ### Inference Phase
 
-1) Click the `Download` button on the website to save the dataset as a binary file
-2) Press the MODE button on the breadboard (or the `Switch to INFERENCE` button on the website) to start inference mode
-3) Move around the environment and observe the predicted position on the website
+1) Press the MODE button on the breadboard (or the `Switch to INFERENCE` button on the website) to start inference mode
+2) Move around the environment and observe the predicted position on the website
