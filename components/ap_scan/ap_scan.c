@@ -1,17 +1,15 @@
 #include "ap_scan.h"
-#include "config.h"
 #include "dataset.h"
 #include "gpio.h"
 
-#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 
-#include "esp_log.h"
 #include "esp_wifi.h"
 #include "driver/gpio.h"
 #include "esp_wifi_types_generic.h"
-#include "freertos/idf_additions.h"
+
+#define SSID CONFIG_ESP_AP_SCAN_SSID
 
 uint8_t ap_scan(AccessPoint aps[])
 {

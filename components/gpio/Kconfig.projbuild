@@ -1,0 +1,25 @@
+menu "GPIO Config"
+    config RIGHT_BTN
+        int "Right Button Pin"
+        default 21
+
+    config TOP_BTN
+        int "Top Button Pin"
+        default 3
+
+    config DOWN_BTN
+        int "Down Button Pin"
+        default 22
+
+    config LEFT_BTN
+        int "Left Button Pin"
+        default 23
+
+    config SCAN_BTN
+        int "Scan Button Pin"
+        default 19
+
+    config MODE_BTN
+        int "Mode Switch Button Pin"
+        default 18
+endmenu

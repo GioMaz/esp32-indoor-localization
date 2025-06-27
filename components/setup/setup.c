@@ -1,4 +1,3 @@
-#include "config.h"
 #include "esp_task_wdt.h"
 #include "gpio.h"
 #include "wifi.h"

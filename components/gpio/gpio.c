@@ -11,13 +11,13 @@
 
 #define NUM_DIRS 4
 
-#define BTN1 21
-#define BTN2 3
-#define BTN3 22
-#define BTN4 23
+#define BTN1 CONFIG_RIGHT_BTN
+#define BTN2 CONFIG_TOP_BTN
+#define BTN3 CONFIG_DOWN_BTN
+#define BTN4 CONFIG_LEFT_BTN
 
-#define BTN5 19
-#define BTN6 18
+#define BTN5 CONFIG_SCAN_BTN
+#define BTN6 CONFIG_MODE_BTN
 
 volatile bool btn_pressed[NUM_DIRS + 2] = {false};
 gpio_num_t btn_pins[NUM_DIRS + 2] = {BTN1, BTN2, BTN3, BTN4, BTN5, BTN6};
