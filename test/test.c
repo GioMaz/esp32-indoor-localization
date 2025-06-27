@@ -76,7 +76,7 @@ void make_noisy_query(const Fingerprint *fp, Query *query) {
 int main() {
     Dataset dataset;
 
-    if (load_dataset_from_csv("wifi_map.csv", &dataset) != 0) {
+    if (load_dataset_from_csv("build/wifi_map.csv", &dataset) != 0) {
         return 1;
     }
 
@@ -89,7 +89,7 @@ int main() {
     Query query;
     make_noisy_query(original, &query);
 
-    Pos estimated;
+    Pos estimated = {0,0};
     inference(&dataset, &query, &estimated);
 
     printf("\n------------\nQuery simulated with noise, based on position: (%f, %f)\n", original->pos.x, original->pos.y);
