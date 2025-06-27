@@ -2,7 +2,7 @@
 
 <div align="center">
   <p>
-    <img src="https://github.com/user-attachments/assets/887977f2-2fe1-42c5-a7de-107dea1ccae7" alt="inference_training" width="600px">
+    <img src="./resources/room.jpg" alt="inference_training" width="600px">
   </p>
 </div>
 
@@ -13,7 +13,7 @@ In the train phase we map the environment by scanning each position, resulting i
 
 <div align="center">
   <p>
-    <img src="https://github.com/user-attachments/assets/822847b6-4ac6-48a1-bccb-021eff6e030a" alt="inference_training" width="400px">
+    <img src="./resources/showcase.gif" alt="inference_training" width="400px">
   </p>
   <h4>A screen capture of the interface: the training phase is shown on the left, and the inference phase on the right (both sped up).</h4>
 </div>
@@ -39,7 +39,7 @@ In order to run the project, the following hardware is needed:
 In order to end up with the intended behaviour, you must replicate the following configuration:
 <div align="center">
   <p>
-    <img src="https://github.com/user-attachments/assets/edbc8f3a-03c5-4459-8f9c-e31b1f543c51" alt="hardware setup" width="400px">
+    <img src="./resources/hardware.jpg" alt="hardware setup" width="400px">
   </p>
   <h4>Hardware setup and connections.</h4>
 </div>
