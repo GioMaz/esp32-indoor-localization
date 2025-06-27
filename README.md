@@ -1,5 +1,12 @@
 # ESP32 Indoor Localization
 
+<div align="center">
+  <p>
+    <img src="https://github.com/user-attachments/assets/887977f2-2fe1-42c5-a7de-107dea1ccae7" alt="inference_training" width="600px">
+  </p>
+</div>
+
+
 The objective of this project is to localize the esp32 in an indoor environment.
 
 The workflow consists in two parts, first we perform the training, we map the environment by scanning each position, resulting in a dataset composed by fingerprints where a fingerprint is represented by the tuple: (x, y, access points list). Once the dataset is ready, the main loop continuously scans for near access points and based on that an algorithm determines the current position.
@@ -8,7 +15,7 @@ The workflow consists in two parts, first we perform the training, we map the en
   <p>
     <img src="https://github.com/user-attachments/assets/822847b6-4ac6-48a1-bccb-021eff6e030a" alt="inference_training" width="400px">
   </p>
-  <h4>On the left the training phase, while on the right the inference phase (both sped up).</h4>
+  <h4>A screen capture of the interface, on the left the training phase while on the right the inference phase (both sped up).</h4>
 </div>
 
 ## Prerequisites
