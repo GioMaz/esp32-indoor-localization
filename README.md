@@ -83,78 +83,103 @@ idf.py reconfigure
    (unitn-x) Access Point SSID Filter 
    (4) Maximal STA Connections 
    ```
+
+#### Set Main Task Size
+1. Run the menuconfig tool with `idf.py menuconfig`
+2. Navigate to `Component Config → ESP System Settings → Main task stack size (8000)`
+
+#### Set Flash Size
+1. Run the menuconfig tool with `idf.py menuconfig`
+2. Navigate to `Serial Flasher Config → Flash Size (4 MB)`
    
 ### Build and Flash into ESP
 ```bash
 idf.py build flash
 ```
 
+Additionally, if you want to see the output logs you may run:
+```bash
+idf.py monitor
+```
+
 ## Project layout
 
 ```
-.
+esp32-indoor-localization
 ├── CMakeLists.txt
 ├── components
-│   ├── ap_scan
-│   │   ├── ap_scan.c
+│   ├── ap_scan                  # Scan for AP data and extract the relevant information
+│   │   ├── ap_scan.c        
 │   │   ├── ap_scan.h
 │   │   └── CMakeLists.txt
-│   ├── dataset
+│   ├── dataset                  # Data Structure for storing the Fingerprints
 │   │   ├── CMakeLists.txt
 │   │   ├── dataset.c
 │   │   └── dataset.h
-│   ├── gpio
+│   ├── gpio                     # Setup task and interrupts for handling GPIO
 │   │   ├── CMakeLists.txt
 │   │   ├── gpio.c
 │   │   ├── gpio.h
 │   │   └── Kconfig.projbuild
-│   ├── http_server
+│   ├── http_server              # Setup task for running the Http Server and handling API endpoints
 │   │   ├── CMakeLists.txt
 │   │   ├── http_server.c
 │   │   ├── http_server.h
 │   │   ├── routes.c
 │   │   └── routes.h
-│   ├── nvs
+│   ├── nvs                      # Setup the ESP internal storage
 │   │   ├── CMakeLists.txt
 │   │   ├── nvs.c
 │   │   └── nvs.h
-│   ├── setup
+│   ├── setup                    # Collect the initial setup into a single API
 │   │   ├── CMakeLists.txt
 │   │   ├── setup.c
 │   │   └── setup.h
-│   ├── state_inference
+│   ├── state_inference          # Algorithm for predicting the user's current position
 │   │   ├── CMakeLists.txt
 │   │   ├── state_inference.c
 │   │   └── state_inference.h
-│   ├── state_training
+│   ├── state_training           # Handling the changes of positions, AP scans and dataset insertions
 │   │   ├── CMakeLists.txt
 │   │   ├── state_training.c
 │   │   └── state_training.h
-│   ├── storage
+│   ├── storage                  # API for interaction with ESP file system (using littlefs)
 │   │   ├── CMakeLists.txt
 │   │   ├── storage.c
 │   │   └── storage.h
-│   ├── utils
+│   ├── utils                    # Utily functions and definitions
 │   │   ├── CMakeLists.txt
 │   │   ├── utils.c
 │   │   └── utils.h
-│   └── wifi
+│   └── wifi                     # Setup WiFi module for both running the AP and performing scans
 │       ├── CMakeLists.txt
 │       ├── Kconfig.projbuild
 │       ├── wifi.c
 │       └── wifi.h
 ├── dependencies.yml
-├── main
+├── main                         # Setup peripherals, initialize application dataset and other relevant variables, finally start main loop
 │   ├── CMakeLists.txt
 │   ├── idf_component.yml
 │   └── main.c
 ├── partitions.csv
 ├── README.md
-├── storage_image
-│   ├── dataset.bin
-│   └── index.html
-└── test
-    └── Makefile
+└── storage_image                # Content of the ESP storage (binary dataset, web page)
+    ├── dataset.bin
+    └── index.html
+```
 
-```     
+## User Guide
 
+> Make sure that you followed the setup, correctly flashed the ESP and connected it to a power source.
+
+### Training Phase
+- Step 1: Connect to the ESP Access Point trought WiFi
+- Step 2: Navigate to the web site, hosted at the default address `192.168.4.1`
+- Step 3: Navigate to the intended position by using the directional buttons on the breadboard, you should see the map on the website updating in real time
+- Step 4: Press the SCAN button on the breadboard, in order to acquire information about the nearby access points
+- Step 5: Repeat the previous two steps, until the completion of the dataset
+
+### Inference Phase
+- Step 6: Click the `Download` button on the website in order to save the dataset into a binary file
+- Step 7: Press the MODE button on the breadboard (or the `Switch to INFERENCE` button on the website) in order to start the inference loop
+- Step 8: Move around the area and look at the predicted position on the website
