@@ -173,13 +173,13 @@ esp32-indoor-localization
 > Make sure that you followed the setup, correctly flashed the ESP and connected it to a power source.
 
 ### Training Phase
-- Step 1: Connect to the ESP Access Point trought WiFi
-- Step 2: Navigate to the web site, hosted at the default address `192.168.4.1`
-- Step 3: Navigate to the intended position by using the directional buttons on the breadboard, you should see the map on the website updating in real time
-- Step 4: Press the SCAN button on the breadboard, in order to acquire information about the nearby access points
-- Step 5: Repeat the previous two steps, until the completion of the dataset
+1) Connect to the ESP Access Point trought WiFi
+2) Navigate to the web site, hosted at the default address `192.168.4.1`
+3) Navigate to the intended position by using the directional buttons on the breadboard, you should see the map on the website updating in real time
+4) Press the SCAN button on the breadboard, in order to acquire information about the nearby access points
+5) Repeat the previous two steps, until the completion of the dataset
 
 ### Inference Phase
-- Step 6: Click the `Download` button on the website in order to save the dataset into a binary file
-- Step 7: Press the MODE button on the breadboard (or the `Switch to INFERENCE` button on the website) in order to start the inference loop
-- Step 8: Move around the area and look at the predicted position on the website
+1) Click the `Download` button on the website in order to save the dataset into a binary file
+2) Press the MODE button on the breadboard (or the `Switch to INFERENCE` button on the website) in order to start the inference loop
+3) Move around the area and look at the predicted position on the website
