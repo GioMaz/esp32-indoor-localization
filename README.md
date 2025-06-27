@@ -6,7 +6,6 @@
   </p>
 </div>
 
-
 The objective of this project is to perform indoor localization based on access point data.
 
 The workflow consists in two phases: **training** and **inference**.
