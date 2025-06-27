@@ -1,0 +1,18 @@
+menu "AP Config"
+    config ESP_AP_SSID
+        string "Access Point SSID"
+        default "esp32-indoor-localization"
+
+    config ESP_AP_PASSWORD
+        string "Access Point Password"
+        default "123456789"
+
+    config ESP_AP_SCAN_SSID
+        string "Access Point SSID Filter"
+        default "unitn-x"
+
+    config ESP_MAX_STA_CONN
+        int "Maximal STA connections"
+        default 4
+
+endmenu

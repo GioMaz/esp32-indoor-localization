@@ -1,16 +1,11 @@
 #include "state_training.h"
-#include "config.h"
 #include "dataset.h"
 #include "gpio.h"
 #include "ap_scan.h"
 
-#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 
-#include "esp_log.h"
-#include "esp_wifi.h"
-#include "esp_wifi_types_generic.h"
 #include "freertos/idf_additions.h"
 
 Pos dir_to_offset[] = {
