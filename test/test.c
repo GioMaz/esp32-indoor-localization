@@ -8,6 +8,8 @@
 #include "utils.h"
 #include "inference.h"
 
+#define NUM_ITERATIONS 10
+
 // Converts MAC string to array of 6 bytes
 void parse_mac(const char *mac_str, uint8_t *mac_out) {
     for (int i = 0; i < 6; i++) {
@@ -80,26 +82,41 @@ int main() {
         return 1;
     }
 
-    printf("Dataset caricato con %u fingerprints\n", dataset.data_count);
+    printf("Dataset loaded with %u fingerprints\n", dataset.data_count);
 
-    // Selects random position and adds noise to generate query
     srand(time(NULL)); 
-    int index = rand() % dataset.data_count;  // Random index between 0 and data_count-1
+
+    double total_error = 0.0;
+
+    // Choose random position to use for the query
+    int index = rand() % dataset.data_count;
     Fingerprint *original = &dataset.data[index];
-    Query query;
-    make_noisy_query(original, &query);
 
-    Pos estimated = {0,0};
-    inference(&dataset, &query, &estimated);
+    Pos previous = {0.0, 0.0};  
 
-    printf("\n------------\nQuery simulated with noise, based on position: (%f, %f)\n", original->pos.x, original->pos.y);
-    printf("Position estimate: (%f, %f)\n", estimated.x, estimated.y);
+    for (int i = 0; i < NUM_ITERATIONS; i++) {
+        
+        // New query with noise
+        Query query;
+        make_noisy_query(original, &query);
 
-    if (estimated.x == original->pos.x && estimated.y == original->pos.y) {
-        printf("Success\n");
-    } else {
-        printf("Fail\n");
+        // Inference phase
+        inference(&dataset, &previous, &query);
+
+        // Calculate error between real and estimated position
+        double dx = previous.x - original->pos.x;
+        double dy = previous.y - original->pos.y;
+        double error = sqrt(dx * dx + dy * dy);
+        total_error += error;
+
+        printf("Iteration %3d - Estimated pos: (%.2f, %.2f), Error: %.2f\n", i + 1, previous.x, previous.y, error);
     }
+
+    printf("\n------------\n");
+    printf("Number of iterations: %d\n", NUM_ITERATIONS);
+    printf("Average error: %.2f units\n", total_error / NUM_ITERATIONS);
+    printf("\nReal position: (%.2f, %.2f)\n", original->pos.x, original->pos.y);
+    printf("Final estimated position: (%.2f, %.2f)\n", previous.x, previous.y);
 
     return 0;
 }
