@@ -18,6 +18,8 @@ void inference(const Dataset *dataset, Pos *previous, const Query *query)
         dps[i].pos = fingerprint->pos;
     }
 
+#ifdef DEBUG
+
     // Sort (dist, pos) couples based on dist
     qsort(dps, dataset->data_count, sizeof(dps[0]), cmp);
 
@@ -26,12 +28,27 @@ void inference(const Dataset *dataset, Pos *previous, const Query *query)
     }
 
     // Take the closest point
-    Pos result;
+    Pos result = {0, 0};
     if (dataset->data_count) {
         result = dps[0].pos;
-    } else {
-        result = (Pos){0.0, 0.0};
     }
+
+#else
+
+    // Take the closest point
+    int idx = 0;
+    for (int i = 1; i < dataset->data_count; i++) {
+        if (dps[i].dist < dps[idx].dist) {
+            idx = i;
+        }
+    }
+
+    Pos result = {0, 0};
+    if (dataset->data_count) {
+        result = dps[idx].pos;
+    }
+
+#endif
 
     printf("KNN RESULT: (%f, %f)\n", result.x, result.y);
 
