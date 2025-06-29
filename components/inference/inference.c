@@ -102,7 +102,7 @@ void append_macs(Mac macs[], int *macs_count, const AccessPoint aps[], int aps_c
 
 int get_rssi(const Mac mac, const AccessPoint aps[], int aps_count)
 {
-    int rssi = 0;
+    int rssi = RSSI_MIN;
     for (int i = 0; i < aps_count; i++) {
         if (!memcmp(aps[i].mac, mac, sizeof(Mac))) {
             rssi = aps[i].rssi;

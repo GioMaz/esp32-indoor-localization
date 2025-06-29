@@ -4,7 +4,10 @@
 #include "utils.h"
 #include <stdint.h>
 
-#define ALPHA 0.4
+#define ALPHA 0.6
+
+// We assume that the rssi of a non-existent AP is this
+#define RSSI_MIN (-100)
 
 typedef struct {
     AccessPoint aps[APS_SIZE];
