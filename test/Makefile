@@ -7,13 +7,13 @@ TEST_OUT=test.out
 WIFI_MAP_CSV=wifi_map.csv
 
 run: $(BUILD_DIR)/$(TEST_OUT) $(BUILD_DIR)/$(WIFI_MAP_CSV)
-	$(BUILD_DIR)/$(TEST_OUT)
+	$(BUILD_DIR)/$(TEST_OUT) $(BUILD_DIR)/$(WIFI_MAP_CSV)
 
 $(BUILD_DIR)/$(TEST_OUT): test.c | $(BUILD_DIR)
 	$(CC) $(INCLUDE_DIRS) $(COMPILED_FILES) -o $(BUILD_DIR)/$(TEST_OUT) test.c -lm
 
 $(BUILD_DIR)/$(WIFI_MAP_CSV): generate.py | $(BUILD_DIR)
-	python3 generate.py
+	python3 generate.py $(BUILD_DIR)/$(WIFI_MAP_CSV)
 
 $(BUILD_DIR):
 	mkdir $(BUILD_DIR)
