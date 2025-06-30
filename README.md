@@ -155,6 +155,10 @@ esp32-indoor-localization
 │   │   ├── http_server.h
 │   │   ├── routes.c
 │   │   └── routes.h
+│   ├── inference                # Platform independent implementation of the localization algorithm
+│   │   ├── CMakeLists.txt
+│   │   ├── inference.c
+│   │   └── inference.h
 │   ├── nvs                      # Setup the ESP internal storage
 │   │   ├── CMakeLists.txt
 │   │   ├── nvs.c
@@ -163,11 +167,11 @@ esp32-indoor-localization
 │   │   ├── CMakeLists.txt
 │   │   ├── setup.c
 │   │   └── setup.h
-│   ├── state_inference          # Algorithm for predicting the user's current position
+│   ├── state_inference          # Handler of the inference state, defines the scan-inference loop
 │   │   ├── CMakeLists.txt
 │   │   ├── state_inference.c
 │   │   └── state_inference.h
-│   ├── state_training           # Handling the changes of positions, AP scans and dataset insertions
+│   ├── state_training           # Handler of the training state, handles changes of positions, manual AP scans and dataset insertions
 │   │   ├── CMakeLists.txt
 │   │   ├── state_training.c
 │   │   └── state_training.h
@@ -189,11 +193,19 @@ esp32-indoor-localization
 │   ├── CMakeLists.txt
 │   ├── idf_component.yml
 │   └── main.c
-├── partitions.csv
+├── partitions.csv               # Define the partitions of the flash memory
 ├── README.md
-└── storage_image                # Content of the ESP storage (binary dataset, web page)
-    ├── dataset.bin
-    └── index.html
+├── resources
+│   ├── hardware.jpg
+│   ├── room.jpg
+│   └── showcase.gif
+├── storage_image                # Content of the ESP storage (example binary dataset, web page)
+│   ├── dataset.bin
+│   └── index.html
+└── test                         # Tests for the inference algorithm along with a generator of example datasets
+    ├── generate.py
+    ├── Makefile
+    └── test.c
 ```
 
 ## User Guide
