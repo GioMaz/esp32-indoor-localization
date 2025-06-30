@@ -8,7 +8,7 @@
 #include "utils.h"
 #include "inference.h"
 
-#define NUM_ITERATIONS 100
+#define NUM_ITERATIONS 10
 
 // Converts MAC string to array of 6 bytes
 void parse_mac(const char *mac_str, uint8_t *mac_out) {
