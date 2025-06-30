@@ -30,7 +30,7 @@ In order to run the project, the following hardware is needed:
   
 ### Software
 
-- [Espressif IoT Development Framework](https://www.espressif.com/en/products/sdks/esp-idf)
+- [Espressif IoT Development Framework](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/index.html)
 
 ## Setup
 
