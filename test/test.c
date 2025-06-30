@@ -75,10 +75,16 @@ void make_noisy_query(const Fingerprint *fp, Query *query) {
     }
 }
 
-int main() {
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        fprintf(stderr, "Usage: %s <csv_filename>\n", argv[0]);
+        return 1;
+    }
+
+    const char *filename = argv[1];
     Dataset dataset;
 
-    if (load_dataset_from_csv("build/wifi_map.csv", &dataset) != 0) {
+    if (load_dataset_from_csv(filename, &dataset) != 0) {
         return 1;
     }
 

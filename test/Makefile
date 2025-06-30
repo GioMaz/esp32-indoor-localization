@@ -5,15 +5,16 @@ INCLUDE_DIRS=-I$(COMPONENTS_DIR)/dataset -I$(COMPONENTS_DIR)/utils -I$(COMPONENT
 COMPILED_FILES=$(COMPONENTS_DIR)/dataset/dataset.c $(COMPONENTS_DIR)/inference/inference.c
 TEST_OUT=test.out
 WIFI_MAP_CSV=wifi_map.csv
+HEATMAP_PNG=heatmap.png
 
-run: $(BUILD_DIR)/$(TEST_OUT) $(BUILD_DIR)/$(WIFI_MAP_CSV)
-	$(BUILD_DIR)/$(TEST_OUT)
+run: $(BUILD_DIR)/$(TEST_OUT) $(BUILD_DIR)/$(WIFI_MAP_CSV) $(BUILD_DIR)/$(HEATMAP_PNG)
+	$(BUILD_DIR)/$(TEST_OUT) $(BUILD_DIR)/$(WIFI_MAP_CSV)
 
 $(BUILD_DIR)/$(TEST_OUT): test.c | $(BUILD_DIR)
 	$(CC) $(INCLUDE_DIRS) $(COMPILED_FILES) -o $(BUILD_DIR)/$(TEST_OUT) test.c -lm
 
-$(BUILD_DIR)/$(WIFI_MAP_CSV): generate.py | $(BUILD_DIR)
-	python3 generate.py
+$(BUILD_DIR)/$(WIFI_MAP_CSV) $(BUILD_DIR)/$(HEATMAP_PNG): generate.py | $(BUILD_DIR)
+	python3 generate.py $(BUILD_DIR)/$(WIFI_MAP_CSV) --heatmap $(BUILD_DIR)/$(HEATMAP_PNG)
 
 $(BUILD_DIR):
 	mkdir $(BUILD_DIR)

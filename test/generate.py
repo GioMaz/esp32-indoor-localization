@@ -1,96 +1,85 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import random
 import csv
+import sys
+import argparse
+import matplotlib.pyplot as plt
 
-# Room dimensions
-width, height = 18, 4
+ROOM_WIDTH = 18
+ROOM_HEIGHT = 4
+NUM_APS = 4
 
-# Number of APs
-num_aps = 4
+AP_POSITIONS = [(10, 3), (15, 0), (0, 2), (4, 1)]
 
-# Generate random MAC address for every AP
-def random_mac():
+def generate_mac():
     return [random.randint(0x00, 0xFF) for _ in range(6)]
 
-macs = [random_mac() for _ in range(num_aps)]
+def simulate_rssi(ap_x, ap_y, x, y):
+    distance = np.sqrt((x - ap_x)**2 + (y - ap_y)**2)
+    return -30 - distance * 5 if distance <= 5 else -100
 
-# AP positions (fixed)
-ap_positions = [
-    (10, 3),
-    (15, 0),
-    (0, 2),
-    (4, 1),
-]
+def format_mac(mac):
+    return ''.join(f'{b:02X}' for b in mac)
 
-colors = [
-    (1, 0, 0),     # RED
-    (0, 1, 0),     # GREEN
-    (0, 0, 1),     # BLUE
-    (1, 1, 0),     # YELLOW
-]
+def write_csv(filename, macs, rssi_grid):
+    with open(filename, 'w', newline='') as f:
+        writer = csv.writer(f)
+        
+        header = ['x', 'y']
+        for i in range(NUM_APS):
+            header.extend([f'mac{i+1}', f'rssi{i+1}'])
+        writer.writerow(header)
+        
+        for y in range(ROOM_HEIGHT):
+            for x in range(ROOM_WIDTH):
+                row = [x, y]
+                rssi_values = []
+                for (ap_x, ap_y), mac in zip(AP_POSITIONS, macs):
+                    rssi = simulate_rssi(ap_x, ap_y, x, y)
+                    rssi_values.append(rssi)
+                    row.extend([format_mac(mac), int(rssi)])
+                rssi_grid[y, x] = np.max(rssi_values)
+                writer.writerow(row)
 
-def simulate_rssi(x_ap, y_ap, x, y):
-    dist = np.sqrt((x - x_ap)**2 + (y - y_ap)**2)
-    if dist > 5:
-        return None
-    return -30 - dist * 5  # dBm: -30 vicino, -55 a 5 celle
+def generate_heatmap(rssi_grid, output_image):
+    plt.figure(figsize=(ROOM_WIDTH / 2, ROOM_HEIGHT / 2))
+    plt.imshow(rssi_grid, cmap='hot', interpolation='nearest', origin='lower')
 
-# # --- Heatmap RGB generation (AP combinations) ---
-# heatmap_rgb = np.zeros((height, width, 3))
-#
-# for (pos_x, pos_y), color in zip(ap_positions, colors):
-#     for y in range(height):
-#         for x in range(width):
-#             rssi = simulate_rssi(pos_x, pos_y, x, y)
-#             if rssi is not None:
-#                 intensity = max(0, min(1, (rssi + 80) / 50))
-#                 heatmap_rgb[y, x] += np.array(color) * intensity
-#
-# heatmap_rgb = np.clip(heatmap_rgb, 0, 1)
-#
-# # --- Heatmap visualization ---
-# plt.figure(figsize=(12, 3))
-# plt.imshow(heatmap_rgb, origin='upper')
-# plt.title('Mappa WiFi combinata (4 AP)')
-# plt.xlabel('X')
-# plt.ylabel('Y')
-# plt.grid(True, which='both', color='gray', linestyle='--', linewidth=0.5)
-#
-# for (pos_x, pos_y), color in zip(ap_positions, colors):
-#     plt.scatter(pos_x, pos_y, c=[color], label=f'AP at ({pos_x},{pos_y})', edgecolors='black', s=100)
-#
-# plt.legend()
-# plt.xticks(np.arange(width))
-# plt.yticks(np.arange(height))
-# plt.show()
-#
-# # --- Data saving in CSV ---
+    plt.colorbar(label='Max RSSI (dBm)')
+    
+    plt.title('Heatmap of Max RSSI')
+    plt.xlabel('X')
+    plt.ylabel('Y')
+    plt.xticks(np.arange(ROOM_WIDTH))
+    plt.yticks(np.arange(ROOM_HEIGHT))
+    
+    ap_xs = [pos[0] for pos in AP_POSITIONS]
+    ap_ys = [pos[1] for pos in AP_POSITIONS]
+    plt.scatter(ap_xs, ap_ys, c='blue', s=100, marker='x', label='Access Point')
+    
+    for i, (x, y) in enumerate(AP_POSITIONS):
+        plt.text(x + 0.2, y + 0.2, f'AP{i+1}', color='blue', fontsize=8, weight='bold')
 
-filename = './build/wifi_map.csv'
-with open(filename, mode='w', newline='') as csvfile:
-    writer = csv.writer(csvfile)
-    # Header: x,y,mac1,rssi1,mac2,rssi2,...
-    header = ['x', 'y']
-    for i, mac in enumerate(macs):
-        mac_str = ''.join(f'{b:02X}' for b in mac)
-        header.append(f'mac{i+1}')
-        header.append(f'rssi{i+1}')
-    writer.writerow(header)
-
-    for y in range(height):
-        for x in range(width):
-            row = [x, y]
-            for (mx, my), mac in zip(ap_positions, macs):
-                rssi = simulate_rssi(mx, my, x, y)
-                rssi_val = int(round(rssi)) if rssi is not None else -100  
-                mac_str = ''.join(f'{b:02X}' for b in mac)
-                row.append(mac_str)
-                row.append(rssi_val)
-            writer.writerow(row)
+    plt.legend(loc='upper right')
+    plt.tight_layout()
+    plt.savefig(output_image)
+    print(f"Heatmap image saved: {output_image}")
 
 
-print(f"Generated CSV: {filename}")
-print("used MAC address:")
-for i, mac in enumerate(macs):
-    print(f"AP{i+1}: {''.join(f'{b:02X}' for b in mac)}")
+def main():
+    parser = argparse.ArgumentParser(description="Generate RSSI dataset with optional heatmap.")
+    parser.add_argument("output_csv", help="Output CSV filename")
+    parser.add_argument("--heatmap", help="Output image filename for heatmap", default=None)
+    args = parser.parse_args()
+    
+    macs = [generate_mac() for _ in range(NUM_APS)]
+    rssi_grid = np.zeros((ROOM_HEIGHT, ROOM_WIDTH))
+    
+    write_csv(args.output_csv, macs, rssi_grid)
+    print(f"CSV file generated: {args.output_csv}")
+    
+    if args.heatmap:
+        generate_heatmap(rssi_grid, args.heatmap)
+
+if __name__ == "__main__":
+    main()
