@@ -9,7 +9,7 @@
 The objective of this project is to perform indoor localization based on access point data.
 
 The workflow consists in two phases: **training** and **inference**.
-In the train phase we map the environment by scanning each position, resulting in a dataset of fingerprints. A **fingerprint** is represented by a tuple: `(x, y, list of access points)`. Once the dataset is ready, the main loop continuously scans for nearby access points and determines the current position based on the collected data.
+In the train phase we map the environment by scanning each position, resulting in a dataset of fingerprints. A **fingerprint** is represented by a tuple: `(x, y, list of access points)`. Once the dataset is ready, the main loop continuously scans for nearby access points and determines the current position based on the collected data using a simple machine learning algorithm.
 
 <div align="center">
   <p>
