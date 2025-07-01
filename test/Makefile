@@ -3,10 +3,12 @@ BUILD_DIR=build
 STORAGE_IMAGE_DIR=../storage_image
 COMPONENTS_DIR=../components
 
+# Include dirs
 INCLUDE_DATASET=-I$(COMPONENTS_DIR)/dataset
 INCLUDE_UTILS=-I$(COMPONENTS_DIR)/utils
 INCLUDE_INFERENCE=-I$(COMPONENTS_DIR)/inference
 
+# File names
 TEST_OUT=test.out
 DATASET_PRINT_OUT=dataset_print.out
 WIFI_MAP_CSV=wifi_map.csv
