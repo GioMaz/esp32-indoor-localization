@@ -28,15 +28,13 @@ int load_dataset_from_csv(const char *filename, Dataset *dataset) {
     char line[256];
     fgets(line, sizeof(line), fp); 
 
+    memset(dataset, 0, sizeof(*dataset));
     dataset->data_count = 0;
 
     while (fgets(line, sizeof(line), fp) && dataset->data_count < DATASET_SIZE) {
-        Fingerprint *fp_data = &dataset->data[dataset->data_count];
-        fp_data->aps_count = 0;
-
         int x, y;
-        char mac_str[6][13];
-        int rssi[6];
+        char mac_str[APS_SIZE][13];
+        int rssi[APS_SIZE];
 
         int count = sscanf(line, "%d,%d,%12[^,],%d,%12[^,],%d,%12[^,],%d,%12[^,],%d",
                            &x, &y,
@@ -50,16 +48,14 @@ int load_dataset_from_csv(const char *filename, Dataset *dataset) {
             continue;
         }
 
-        fp_data->pos.x = x;
-        fp_data->pos.y = y;
+        Pos pos = { .x = x, .y = y };
 
         for (int i = 0; i < 4; i++) {
-            parse_mac(mac_str[i], fp_data->aps[i].mac);
-            fp_data->aps[i].rssi = (int8_t)rssi[i];
+            AccessPoint ap;
+            parse_mac(mac_str[i], ap.mac);
+            ap.rssi = (int8_t)rssi[i];
+            dataset_insert_ap(dataset, &ap, pos);
         }
-
-        fp_data->aps_count = 4;
-        dataset->data_count++;
     }
 
     fclose(fp);
