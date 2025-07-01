@@ -18,9 +18,10 @@ In the train phase we map the environment by scanning each position, resulting i
   <h4>A screen capture of the interface: the training phase is shown on the left, and the inference phase on the right (both sped up).</h4>
 </div>
 
-## Video Demonstration
+## Video Demonstration and Slides
 
 - https://youtu.be/1WamxCIJJh4
+- https://docs.google.com/presentation/d/10sfparYa3iTq1Bvr1Q4bNFwkTL7tV5UVm3SdiOV6hT8/edit?slide=id.p#slide=id.p
 
 ## Prerequisites
 
