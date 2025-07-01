@@ -224,7 +224,7 @@ esp32-indoor-localization
 
 ## Video Demonstration and Slides
 
-- https://youtu.be/1WamxCIJJh4
+- https://youtu.be/PUVxMti3yoo
 - https://docs.google.com/presentation/d/10sfparYa3iTq1Bvr1Q4bNFwkTL7tV5UVm3SdiOV6hT8/edit?slide=id.p#slide=id.p
 
 ## Team Members
