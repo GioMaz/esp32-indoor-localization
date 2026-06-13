@@ -20,10 +20,10 @@ int main(int argc, char **argv)
 
     Dataset dataset;
     int rb = fread((char *)&dataset, 1, sizeof(Dataset), file);
-    // if (rb == 0) {
-    //     fprintf(stderr, "Failed to read bytes from dataset\n");
-    //     exit(1);
-    // }
+    if (rb == 0) {
+        fprintf(stderr, "Failed to read bytes from dataset\n");
+        exit(1);
+    }
 
     dataset_print(&dataset);
 }
